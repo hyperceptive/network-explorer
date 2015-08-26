@@ -1,7 +1,9 @@
 {
   "name": "graph-explorer",
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "d3": "~3.5.6"
+  },
   "devDependencies": {
     "chai": "~3.2.0",
     "mocha": "~2.2.5"
