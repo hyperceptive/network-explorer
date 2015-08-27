@@ -33,11 +33,26 @@ body {
 
 .node {
   stroke: #fff;
+  stroke-width: 0.3px;
+}
+
+.node.fixed {
+  stroke: #231f20;
   stroke-width: 1.5px;
 }
 
 .link {
   stroke: #999;
   stroke-opacity: .6;
+  pointer-events: none;
 }
+
+
+.label {
+  stroke: #444;
+  stroke-width: 0.5px;
+  font-size: 9px;
+  pointer-events: none;
+}
+
 
