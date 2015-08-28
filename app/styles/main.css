@@ -1,3 +1,16 @@
+/* Hyperceptive Colors
+
+    #231f20   black
+    #f3f3f4   white
+
+    #27aae1   blue
+    #f57c22   orange
+    #fadd67   yellow
+    #57bfa0   green
+    #12b7c7   aqua
+
+ */
+
 body {
   background: #f3f3f4;
   font-family: "Avenir", "Proxima Nova", "Museo Sans", Helvetica, Arial, sans-serif;
@@ -26,11 +39,11 @@ h1 {
 }
 
 #group1 {
-  color: #27aae1;
+  color: #27aae1; /* blue */
 }
 
 #group2 {
-  color: #f57c22;
+  color: #f57c22; /* orange */
 }
 
 
@@ -39,13 +52,9 @@ h1 {
   stroke-width: 0.5px;
 }
 
-.node:hover {
-  stroke: #231f20;
-  stroke-width: 1.5px;
-}
 
-.node.fixed {
-  stroke: #231f20;
+.node.fixed, .node:hover {
+  stroke: #57bfa0; /* green */
   stroke-width: 1.5px;
 }
 
@@ -70,9 +79,10 @@ h1 {
   -webkit-border-radius: 2;
   -moz-border-radius: 2;
   border-radius: 2px;
+  border: none;
   font-family: Arial;
   color: #f3f3f4;
-  font-size: 18px;
+  font-size: 16px;
   background: #27aae1;
   padding: 8px 12px 8px 12px;
   text-decoration: none;
@@ -81,4 +91,10 @@ h1 {
 .btn:hover {
   background: #2590bd;
   text-decoration: none;
+}
+
+.stick-top-right {
+  position: absolute;
+  top: 9px;
+  right: 12px;
 }
