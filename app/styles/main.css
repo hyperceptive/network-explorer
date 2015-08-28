@@ -2,6 +2,7 @@ body {
   background: #fafafa;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #333;
+  margin: 0;
 }
 
 .hero-unit {
@@ -42,8 +43,9 @@ body {
 }
 
 .link {
-  stroke: #999;
-  stroke-opacity: .6;
+  stroke: #000;
+  stroke-opacity: 0.2;
+  stroke-width: 0.5px;
   pointer-events: none;
 }
 

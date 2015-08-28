@@ -1,6 +1,6 @@
 
 var width = 1400,
-    height = 900;
+    height = 800;
 
 var color = d3.scale.category10();
 
@@ -9,15 +9,15 @@ var color = d3.scale.category10();
 //Construct a force layout...
 var force = d3.layout.force()
     .size([width, height])
-    //.linkDistance(20)
+    //.linkDistance(400)
     /*
     .linkStrength(function(d) {
       console.log(d.value);
       return 0.5;
     }) */
-    .gravity(0.9)
-    .charge(-300)
-    .chargeDistance(600)
+    .gravity(0) //0.9
+    .charge(0) //-300
+    //.chargeDistance(600)
     ;
 
 
@@ -35,23 +35,18 @@ var force = d3.layout.force()
 
 
 
-var drag = force.drag()
-      .on('dragstart', dragstart);
+var drag = force.drag().on('dragstart', dragstart);
 
-
-
+//Drag fixes the node's position.
 function dragstart(d) {
   var dragNode = d3.select(this);
   dragNode.classed('fixed', d.fixed = true);
   dragNode
     .select('.label')
     .attr('opacity', 1.0);
-
-  //fish: What about the nodes connected???  Also show their labels.
-
 }
 
-
+//Double-click removes the node's fixed position.
 function dblclick(d) {
   var dragNode = d3.select(this);
   dragNode.classed('fixed', d.fixed = false);
@@ -62,52 +57,13 @@ function dblclick(d) {
 
 
 
-function onMouseOver(d) {
-  //Loop over labels and check if there is an edge from this node to/from that node.
-  svg.selectAll('.label')
-    .attr('opacity', function(d2) {
-      if(d.name === d2.name || typeof d2.fixed !== 'undefined') {
-        return 1.0;
-      }
-      else if(d.group === 1) {
-        if(graph.getEdge(d.name, d2.name)) {
-          return 1.0;
-        }
-      }
-      else if(d.group === 2) {
-        if(graph.getEdge(d2.name, d.name)) {
-          return 1.0;
-        }
-      }
-
-      return 0.0;
-    });
-}
-
-
-function onMouseOut(d) {
-  //Loop over labels and check if there is an edge from this node to/from that node.
-  svg.selectAll('.label')
-    .attr('opacity', function(d2) {
-      if(typeof d2.fixed !== 'undefined') {
-        return 1.0;
-      }
-
-      return 0.0;
-    });
-}
-
-
-
-
-
 var svg = d3.select('body').append('svg')
     .attr('width', width)
     .attr('height', height);
 
 
 d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
-  if (error) throw error;
+  if(error) throw error;
 
   var columns = lobbyistsContacts.meta.view.columns;
 
@@ -120,7 +76,7 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
   var nodes = [];
   var links = [];
 
-  var foci = [{x: 200, y: 250}, {x: 500, y: 250}];
+  var foci = [{x: 200, y: 350}, {x: 1200, y: 350}];
 
   graph = new Graph();
 
@@ -245,12 +201,23 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
       .attr('class', 'node')
       .on('dblclick', dblclick)
       .on('mouseover', function (d) { onMouseOver(d); })
-      .on('mouseout', function (d) { onMouseOut(d); })
+      .on('mouseout', function (d) { onMouseOut(); })
       .call(drag);
 
   node.append('circle')
       .attr('r', function(d) {
-        d.radius = (d.weight < 5 ? 5 : d.weight);
+        var cx = width / 4;
+        var cy = height / 3;
+
+        if(d.group === 2) {
+          cx = (width / 2) + cx;
+        }
+
+        d.x = cx;
+        d.y = cy;
+
+        d.radius = (d.weight <= 5 ? 5 : d.weight);
+        d.radius = d.radius / 2;
         return d.radius;
       })
       .style('fill', function(d) {
@@ -266,77 +233,130 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
       });
 
 
-  node.append('text')
+  var label = node.append('text')
       .attr('class', 'label')
       .attr('dx', 8) //change position based on circle size.
       .attr('dy', '.35em')
       .attr('opacity', 0)
-      .text(function(d) { return d.name; });
+      .text(function(d) { return (d.name + ' (' + d.weight + ')'); });
 
 
   force.on('tick', function(e) {
-    var q = d3.geom.quadtree(nodes),
-        i = 0,
-        n = nodes.length;
-    while (++i < n) {
-      if(typeof nodes[i].fixed === 'undefined') {
-        q.visit(collide(nodes[i]));
-      }
-    }
-
     link.attr('x1', function(d) { return d.source.x; })
         .attr('y1', function(d) { return d.source.y; })
         .attr('x2', function(d) { return d.target.x; })
         .attr('y2', function(d) { return d.target.y; });
 
-    /*
-    var k = .1 * e.alpha;
-    nodes.forEach(function(o, i) {
-      //o.y += (foci[o.group-1].y - o.y) * k;
-      //o.x += (foci[o.group-1].x - o.x) * k;
-      o.y += i & 1 ? k : -k;
-      o.x += i & 2 ? k : -k;
-    });
-    */
     node.selectAll('circle')
+        .each(cluster(.2 * e.alpha))
+        .each(collide(.5))
         .attr('cx', function(d) { return d.x; })
         .attr('cy', function(d) { return d.y; });
 
     node.selectAll('text')
-        .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+      .attr('x', function (d) { return d.x; })
+      .attr('y', function (d) { return d.y; });
 
-    //node.attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+
   });
 
 
 
-  function collide(node) {
-    var r = node.radius + 64, //fish: was 16.
-        nx1 = node.x - r,
-        nx2 = node.x + r,
-        ny1 = node.y - r,
-        ny2 = node.y + r;
 
-    return function(quad, x1, y1, x2, y2) {
-      if (quad.point && (quad.point !== node)) {
-        var x = node.x - quad.point.x,
-            y = node.y - quad.point.y,
-            l = Math.sqrt(x * x + y * y),
-            r = node.radius + quad.point.radius;
-        if (l < r) {
-          l = (l - r) / l * .5;
-          node.x -= x *= l;
-          node.y -= y *= l;
-          quad.point.x += x;
-          quad.point.y += y;
-        }
+
+
+  //Cluster the 2 groups around a point.
+  function cluster(alpha) {
+    return function(d) {
+      var cx = width / 4;
+      var cy = height / 3;
+
+      if(d.group === 2) {
+        cx = (width / 2) + cx;
       }
-      return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+
+      d.y += (cy - d.y) * alpha;
+      d.x += (cx - d.x) * alpha;
+    };
+  }
+
+  // Resolve collisions between nodes.
+  var padding = 1; // separation between circles
+
+  function collide(alpha) {
+    var quadtree = d3.geom.quadtree(nodes);
+    return function(d) {
+      var r = d.radius*2 + padding,  //fish: + maxRadius
+          nx1 = d.x - r,
+          nx2 = d.x + r,
+          ny1 = d.y - r,
+          ny2 = d.y + r;
+
+      quadtree.visit(function(quad, x1, y1, x2, y2) {
+        if(quad.point && (quad.point !== d)) {
+          var x = d.x - quad.point.x,
+              y = d.y - quad.point.y,
+              l = Math.sqrt(x * x + y * y),
+              r = d.radius + quad.point.radius + padding;
+
+          if(l < r) {
+            l = (l - r) / l * alpha;
+            d.x -= x *= l;
+            d.y -= y *= l;
+            quad.point.x += x;
+            quad.point.y += y;
+          }
+        }
+        return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+      });
     };
   }
 
 
+
+
+  //Create an index of connections between nodes
+  var linkedByIndex = {};
+  for(i = 0; i < nodes.length; i++) {
+    linkedByIndex[i + ',' + i] = 1;
+  };
+  links.forEach(function (d) {
+    linkedByIndex[d.source.index + ',' + d.target.index] = 1;
+  });
+
+  function connected(a, b) {
+    return linkedByIndex[a.index + ',' + b.index];
+  }
+
+
+  //Highlight by reducing opacity of non-connected nodes
+  function onMouseOver(d) {
+    node.style('opacity', function (o) {
+      return connected(d, o) | connected(o, d) ? 1 : 0.1;
+    });
+
+    label.style('opacity', function (o) {
+      return connected(d, o) | connected(o, d) ? 1 : 0.1;
+    });
+
+    link.style('opacity', function (o) {
+      return d.index === o.source.index | d.index === o.target.index ? 1 : 0.1;
+    });
+  }
+
+  //Remove highlight
+  function onMouseOut() {
+    node.style('opacity', 1);
+    link.style('opacity', 1);
+
+    label.style('opacity', function(d) {
+      if(typeof d.fixed !== 'undefined') {
+        return 1.0;
+      }
+      return 0.0;
+    });
+  }
+
+
+
 });
-
-
-
