@@ -1,4 +1,11 @@
 
+var contentHeight = window.innerHeight;
+var contentWidth = window.innerWidth;
+
+console.log('contentWidth: ' + contentWidth); //fish
+console.log('contentHeight: ' + contentHeight); //fish
+
+
 var width = 1400,
     height = 800;
 
@@ -15,8 +22,8 @@ var force = d3.layout.force()
       console.log(d.value);
       return 0.5;
     }) */
-    .gravity(0) //0.9
-    .charge(0) //-300
+    .gravity(0.2) //0.9
+    .charge(-300) //-300
     //.chargeDistance(600)
     ;
 
@@ -31,8 +38,6 @@ var force = d3.layout.force()
     .alpha(0.1)
 
 */
-
-
 
 
 var drag = force.drag().on('dragstart', dragstart);
@@ -221,15 +226,15 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
         return d.radius;
       })
       .style('fill', function(d) {
-        /*
+
         if(d.group === 1) {
-          return '#27aae1';
+          return '#27aae1'; //blue
         }
         else {
-          return '#231f20';
+          return '#f57c22'; //orange
         }
-        */
-        return color(d.group);
+
+        //return color(d.group);
       });
 
 
@@ -262,9 +267,6 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
 
 
 
-
-
-
   //Cluster the 2 groups around a point.
   function cluster(alpha) {
     return function(d) {
@@ -279,6 +281,7 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
       d.x += (cx - d.x) * alpha;
     };
   }
+
 
   // Resolve collisions between nodes.
   var padding = 1; // separation between circles
@@ -328,7 +331,6 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
     return linkedByIndex[a.index + ',' + b.index];
   }
 
-
   //Highlight by reducing opacity of non-connected nodes
   function onMouseOver(d) {
     node.style('opacity', function (o) {
@@ -356,7 +358,5 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
       return 0.0;
     });
   }
-
-
 
 });
