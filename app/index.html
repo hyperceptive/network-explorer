@@ -11,6 +11,7 @@
 
     <!-- build:css styles/vendor.css -->
     <!-- bower:css -->
+    <link rel="stylesheet" href="/bower_components/datatables/media/css/jquery.dataTables.css" />
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -24,7 +25,7 @@
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
-    <h1>City of San Francisco Lobbyist Activity</h1>
+    <h1>City of San Francisco: Lobbyist Activity - Contacts of Public Officials</h1>
 
     <div id="group1" class="group">Lobbyist Firm</div>
     <div id="group2" class="group">City Department</div>
@@ -32,11 +33,31 @@
 
     <div id="context_menu">
       <ul id="context_menu_list" class="contextMenu">
-        <li>View Connection Info</li>
-        <li>Open Connection Explorer</li>
+        <li onclick="viewConnectionInfo()">View Connection Info</li>
+        <li onclick="openConnectionExplorer()">Open Connection Explorer</li>
       </ul>
     </div>
 
+
+
+    <div id="openModal" class="modalDialog">
+      <div id="openModalDiv">
+        <a title="Close" class="close" href="#" onclick="closeConnectionsModal()">X</a>
+        <h2>Modal Box</h2>
+        <p>This is a sample modal box that can be created using the powers of CSS3.</p>
+        <div>
+          <table id="connectionsTable" class="display">
+              <thead>
+                  <tr>
+                      <th>Name</th>
+                      <th># of Contacts</th>
+                  </tr>
+              </thead>
+              <tbody id="connectionsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
     <!--
@@ -52,7 +73,9 @@
 
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
+    <script src="/bower_components/jquery/dist/jquery.js"></script>
     <script src="/bower_components/d3/d3.js"></script>
+    <script src="/bower_components/datatables/media/js/jquery.dataTables.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 

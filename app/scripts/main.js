@@ -1,7 +1,9 @@
 /*
   Created by Hyperceptive LLC
 
-  Data from: https://data.sfgov.org/
+  Data from: https://data.sfgov.org/City-Management-and-Ethics/Lobbyist-Activity-Contacts-of-Public-Officials/hr5m-xnxc
+
+  From Jan 1, 2010 until yesterday.
 
   Each Row:
 
@@ -30,7 +32,6 @@
     sid: 262349
     updated_at: 1417625821
     updated_meta: '400501'
-
 */
 
 var nodes, links, graph, group1top, group2top;
@@ -116,8 +117,6 @@ function collide(alpha) {
 
 
 
-
-
 var drag = force.drag()
       .on('dragstart', dragstart);
 
@@ -167,8 +166,8 @@ function findTop5() {
     }
   });
 
-  group1top.sort(sortByWeightDesc)
-  group2top.sort(sortByWeightDesc)
+  group1top.sort(sortByWeightDesc);
+  group2top.sort(sortByWeightDesc);
 
   group1top = group1top.slice(0, 5);
   group2top = group2top.slice(0, 5);
@@ -211,11 +210,114 @@ function arrange() {
   var cx2 = (width / 2) + cx;
 */
 
+  //force.resume();
 
-  force.resume();
+}
+
+
+
+//Content Menu
+
+var connectionsTable = null;
+var contextMenuList = [];
+var contextMenuOpen = false;
+var selectedNode = null;
+var timer = null;
+
+
+//Hide Context Menu if mouse is outside.
+function hideContextMenu() {
+  if(timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+
+  d3.select('#context_menu')
+    .style('display', 'none');
+
+  contextMenuOpen = false;
+}
+
+
+function viewConnectionInfo() {
+  hideContextMenu();
+
+  var edges = graph.getAllEdgesOf(selectedNode.name);
+
+  var listId = 'toId';
+  if(selectedNode.group === 2) {
+    listId = 'fromId';
+  }
+
+
+  if(connectionsTable) {
+    connectionsTable.destroy();
+  }
+
+  contextMenuList = [];
+
+  edges.forEach(function(edge) {
+    var obj = {};
+    obj.name = edge[listId];
+    obj.weight = edge.weight;
+    obj.weightList = edge.weightList;
+
+    contextMenuList.push(obj);
+  });
+
+  contextMenuList.sort(sortByWeightDesc);
+
+  //Add the rows to the table.
+  $('#connectionsTableBody').empty();
+
+  contextMenuList.forEach(function(listItem) {
+    addConnectionsRow(listItem);
+  });
+
+  $('#openModal')
+    .css('opacity', 1)
+    .css('pointer-events', 'auto');
+
+  var height = document.getElementById('openModalDiv').clientHeight;
+
+  connectionsTable = $('#connectionsTable').DataTable({
+    paging: false,
+    scrollY: (height - 228)
+  });
+
+}
+
+
+
+function addConnectionsRow(data) {
+  var row = $('<tr />');
+  $('#connectionsTableBody').append(row);
+  row.append($('<td>' + data.name + '</td>'));
+  row.append($('<td>' + data.weight + '</td>'));
+}
+
+
+
+function closeConnectionsModal() {
+  console.log('close that shite.');
+
+  $('#openModal')
+    .css('opacity', 0)
+    .css('pointer-events', 'none');
+}
+
+
+
+
+
+function openConnectionExplorer() {
+  console.log('Open the connection explorer for node...'); //fish
+
+  hideContextMenu();
 
 
 }
+
 
 
 
@@ -287,9 +389,12 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
 
     if(edge) {
       edge.weight++;
+      edge.weightList.push(edgeObj);
     }
     else {
       var newEdge = graph.addEdge(fromId, toId);
+      newEdge.weightList = [];
+      newEdge.weightList.push(edgeObj);
     }
   });
 
@@ -428,7 +533,7 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
     });
   }
 
-  //Remove highlight and hide context menu.
+  //Remove highlight
   function onMouseOut() {
     node.style('opacity', 1);
     link.style('opacity', 1);
@@ -439,19 +544,14 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
       }
       return 0.0;
     });
-
-    console.log('onMOuseOut.'); //fish
-    //fish: How to figure if we are outside both menu and ???
-    //d3.select('#context_menu')
-    //  .style('display', 'none');
   }
 
-  var contextMenuOpen = false;
-  var timer = null;
 
   //Context Menu - handle right click
   function contextMenu(d, i) {
     d3.event.preventDefault(); //stop showing browser menu
+
+    selectedNode = d;
 
     var x = d3.event.pageX,
         y = d3.event.pageY;
@@ -493,18 +593,6 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
     }
   }
 
-  //Hide Context Menu if mouse is outside.
-  function hideContextMenu() {
-    if(timer) {
-      clearInterval(timer);
-      timer = null;
-    }
-
-    d3.select('#context_menu')
-      .style('display', 'none');
-
-    contextMenuOpen = false;
-  }
 
   d3.select('body')
     .on("mousemove", mousemove);

@@ -2,7 +2,9 @@
   "name": "graph-explorer",
   "private": true,
   "dependencies": {
-    "d3": "~3.5.6"
+    "d3": "~3.5.6",
+    "datatables": "~1.10.8",
+    "jquery": "~2.1.4"
   },
   "devDependencies": {
     "chai": "~3.2.0",
