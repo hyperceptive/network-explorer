@@ -333,6 +333,7 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
       .on('dblclick', dblclick)
       .on('mouseover', function (d) { onMouseOver(d); })
       .on('mouseout', function (d) { onMouseOut(); })
+      .on("contextmenu", function(d, i) { contextMenu(d, i); })
       .call(drag);
 
   node.append('circle')
@@ -427,7 +428,7 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
     });
   }
 
-  //Remove highlight
+  //Remove highlight and hide context menu.
   function onMouseOut() {
     node.style('opacity', 1);
     link.style('opacity', 1);
@@ -438,6 +439,74 @@ d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
       }
       return 0.0;
     });
+
+    console.log('onMOuseOut.'); //fish
+    //fish: How to figure if we are outside both menu and ???
+    //d3.select('#context_menu')
+    //  .style('display', 'none');
   }
+
+  var contextMenuOpen = false;
+  var timer = null;
+
+  //Context Menu - handle right click
+  function contextMenu(d, i) {
+    d3.event.preventDefault(); //stop showing browser menu
+
+    var x = d3.event.pageX,
+        y = d3.event.pageY;
+
+    d3.select('#context_menu')
+      .style('left', x + 'px')
+      .style('top', y + 'px')
+      .style('display', 'block');
+
+    contextMenuOpen = true;
+  }
+
+
+  function mousemove() {
+    if(contextMenuOpen) {
+      var coordinates = d3.mouse(d3.select('#context_menu').node());
+
+      var x = coordinates[0];
+          y = coordinates[1];
+
+      var menu = document.getElementById('context_menu_list');
+
+      var height = menu.offsetHeight,
+          width = menu.offsetWidth;
+
+      //If outside, set timer unless it already exists...
+      if(x < 0 || y < 0 || x > width || y > height) {
+        if(!timer) {
+          timer = setInterval(hideContextMenu, 1000);
+        }
+      }
+      //If inside, remove timer...
+      else {
+        if(timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+      }
+    }
+  }
+
+  //Hide Context Menu if mouse is outside.
+  function hideContextMenu() {
+    if(timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+
+    d3.select('#context_menu')
+      .style('display', 'none');
+
+    contextMenuOpen = false;
+  }
+
+  d3.select('body')
+    .on("mousemove", mousemove);
 
 });
