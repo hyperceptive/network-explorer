@@ -25,7 +25,7 @@
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
-    <h1>City of San Francisco: Lobbyist Activity - Contacts of Public Officials</h1>
+    <h1>Lobbyist Activity - Contacts of Public Officials <small>City of San Francisco</small></h1>
 
     <div id="group1" class="group">Lobbyist Firm</div>
     <div id="group2" class="group">City Department</div>
@@ -43,14 +43,14 @@
     <div id="openModal" class="modalDialog">
       <div id="openModalDiv">
         <a title="Close" class="close" href="#" onclick="closeConnectionsModal()">X</a>
-        <h2>Modal Box</h2>
-        <p>This is a sample modal box that can be created using the powers of CSS3.</p>
+        <h2 id="connectionName">Node Name</h2>
         <div>
           <table id="connectionsTable" class="display">
               <thead>
                   <tr>
-                      <th>Name</th>
+                      <th>Connection Name</th>
                       <th># of Contacts</th>
+                      <th>...</th>
                   </tr>
               </thead>
               <tbody id="connectionsTableBody"></tbody>

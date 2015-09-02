@@ -33,6 +33,25 @@ h1 {
   margin-left: 12px;
 }
 
+h1 small {
+  text-transform: uppercase;
+  font-style: italic;
+  font-weight: 500;
+  color: #999999;
+}
+
+h2 {
+  margin-bottom: 0;
+}
+
+h2 small {
+  text-transform: uppercase;
+  font-style: italic;
+  font-weight: 500;
+  color: #999999;
+}
+
+
 .group {
   margin-left: 24px;
   float: left;

@@ -215,13 +215,13 @@ var displayTop5 = false;
 function arrange() {
   displayTop5 = !displayTop5;
 
-  var btn = d3.select('#arrangeBtn');
+  var btn = d3.select('#arrangeBtn').node();
 
   if(displayTop5) {
-    btn.node().textContent = 'Reinit';
+    btn.textContent = 'Reinit';
   }
   else {
-    btn.node().textContent = 'Arrange Top 5';
+    btn.textContent = 'Arrange Top 5';
   }
 
   buildGraphVisual();
@@ -252,22 +252,29 @@ function hideContextMenu() {
 }
 
 
+
 function viewConnectionInfo() {
   hideContextMenu();
 
-  var edges = graph.getAllEdgesOf(selectedNode.name);
-
   var listId = 'toId';
+  var nodeType = 'Lobbyist Firm'; //TODO: remove hardcode
+
   if(selectedNode.group === 2) {
     listId = 'fromId';
+    nodeType = 'City Department'; //TODO: remove hardcode
   }
 
+  var label = d3.select('#connectionName').node();
+
+  label.innerHTML = selectedNode.name + ' <small>' + nodeType + '</small>';
 
   if(connectionsTable) {
     connectionsTable.destroy();
   }
 
   contextMenuList = [];
+
+  var edges = graph.getAllEdgesOf(selectedNode.name);
 
   edges.forEach(function(edge) {
     var obj = {};
@@ -295,10 +302,16 @@ function viewConnectionInfo() {
 
   connectionsTable = $('#connectionsTable').DataTable({
     paging: false,
-    scrollY: (modalHeight - 228)
+    scrollY: (modalHeight - 189),
+    "columns": [
+        null,
+        { width: '20px', className: 'dt-right' },
+        { width: '40px', className: 'dt-center' },
+      ]
   });
 
 }
+
 
 
 
@@ -307,6 +320,7 @@ function addConnectionsRow(data) {
   $('#connectionsTableBody').append(row);
   row.append($('<td>' + data.name + '</td>'));
   row.append($('<td>' + data.weight + '</td>'));
+  row.append($('<td>View Details</td>')); //fish: add click handler...
 }
 
 
@@ -464,7 +478,7 @@ function buildGraphVisual() {
         .on('dblclick', dblclick)
         .on('mouseover', function (d) { onMouseOver(d); })
         .on('mouseout', function (d) { onMouseOut(); })
-        .on("contextmenu", function(d, i) { contextMenu(d, i); })
+        .on('contextmenu', function(d, i) { contextMenu(d, i); })
         .call(drag);
 
     node.append('circle')
@@ -625,7 +639,7 @@ function buildGraphVisual() {
 
 
     d3.select('body')
-      .on("mousemove", mousemove);
+      .on('mousemove', mousemove);
 
   });
 }
