@@ -36,7 +36,7 @@
 
 var nodes, links, graph, group1top, group2top;
 
-var height = window.innerHeight - 86; //800  (top bar is 66px)
+var height = window.innerHeight - 86; //800  (top bar is ~66px)
 var width = window.innerWidth; //1400
 
 
@@ -231,12 +231,13 @@ function arrange() {
 
 //Context Menu
 
-var connectionsTable = null;
 var contextMenuList = [];
 var contextMenuOpen = false;
 var selectedNode = null;
 var timer = null;
 
+var connectionsTable = null;
+var detailsTable = null;
 
 //Hide Context Menu if mouse is outside.
 function hideContextMenu() {
@@ -266,7 +267,7 @@ function viewConnectionInfo() {
 
   var label = d3.select('#connectionName').node();
 
-  label.innerHTML = selectedNode.name + ' <small>' + nodeType + '</small>';
+  label.innerHTML = selectedNode.name + ' <small> ' + nodeType + '</small>';
 
   if(connectionsTable) {
     connectionsTable.destroy();
@@ -299,10 +300,15 @@ function viewConnectionInfo() {
     .css('pointer-events', 'auto');
 
   var modalHeight = document.getElementById('openModalDiv').clientHeight;
+  var eightyP = parseInt(window.innerHeight * 0.8) - 170;
+
+  if(modalHeight > eightyP) {
+    modalHeight = eightyP;
+  }
 
   connectionsTable = $('#connectionsTable').DataTable({
     paging: false,
-    scrollY: (modalHeight - 189),
+    scrollY: modalHeight,
     "columns": [
         null,
         { width: '20px', className: 'dt-right' },
@@ -312,22 +318,16 @@ function viewConnectionInfo() {
 
 }
 
-
-
-
 function addConnectionsRow(data) {
   var row = $('<tr />');
   $('#connectionsTableBody').append(row);
   row.append($('<td>' + data.name + '</td>'));
   row.append($('<td>' + data.weight + '</td>'));
-  row.append($('<td>View Details</td>')); //fish: add click handler...
+  row.append($('<td><button class="linkButton" onclick="viewConnectionDetails(\'' + data.name + '\')">View Details</button></td>'));
 }
 
 
-
 function closeConnectionsModal() {
-  console.log('close that shite.');
-
   $('#openModal')
     .css('opacity', 0)
     .css('pointer-events', 'none');
@@ -335,7 +335,85 @@ function closeConnectionsModal() {
 
 
 
+//TODO: Make the modal generic and configurable (since we have two, so far...)
 
+function viewConnectionDetails(name) {
+  var weightList;
+
+  for(var i=0; i < contextMenuList.length; i++) {
+    if(name === contextMenuList[i].name) {
+      weightList = contextMenuList[i].weightList;
+      break;
+    }
+  }
+
+  var label = d3.select('#detailsName').node();
+
+  label.innerHTML = selectedNode.name + ' <small> Connections with ' + name + '</small>';
+
+  if(detailsTable) {
+    detailsTable.destroy();
+  }
+
+  //Add the rows to the table.
+  $('#detailsTableBody').empty();
+
+  weightList.forEach(function(listItem) {
+    addDetailsRow(listItem);
+  });
+
+  $('#openDetailsModal')
+    .css('opacity', 1)
+    .css('pointer-events', 'auto');
+
+  var modalHeight = document.getElementById('openModalDiv').clientHeight;
+  var eightyP = parseInt(window.innerHeight * 0.8) - 170;
+
+  if(modalHeight > eightyP) {
+    modalHeight = eightyP;
+  }
+
+  detailsTable = $('#detailsTable').DataTable({
+    paging: false,
+    scrollY: modalHeight,
+    columnDefs: [
+       { type: 'de_date', targets: 0 }
+     ]
+  });
+
+}
+
+
+
+function addDetailsRow(data) {
+  var row = $('<tr />');
+
+  var d1 = new Date(data.Date);
+  var month = (d1.getMonth() + 1).toString();
+  var day = d1.getDate().toString();
+  var d2 = d1.getFullYear() + '-' + (month.length === 1 ? '0' + month : month) + '-' + (day.length === 1 ? '0' + day : day);
+
+  $('#detailsTableBody').append(row);
+  row.append($('<td>' + d2 + '</td>'));
+  row.append($('<td>' + data.LobbyingSubjectArea + '</td>'));
+  row.append($('<td>' + data.MunicipalDecision + '</td>'));
+  row.append($('<td>' + data.DesiredOutcome + '</td>'));
+  row.append($('<td>' + data.Lobbyist_Client + '</td>'));
+  row.append($('<td>' + data.Official + '</td>'));
+}
+
+
+function closeDetailsModal() {
+  $('#openDetailsModal')
+    .css('opacity', 0)
+    .css('pointer-events', 'none');
+}
+
+
+
+
+
+// Open the other visualization.
 
 function openConnectionExplorer() {
   console.log('Open the connection explorer for node...'); //fish
@@ -618,11 +696,11 @@ function buildGraphVisual() {
 
         var menu = document.getElementById('context_menu_list');
 
-        var height = menu.offsetHeight,
-            width = menu.offsetWidth;
+        var menuHeight = menu.offsetHeight,
+            menuWidth = menu.offsetWidth;
 
         //If outside, set timer unless it already exists...
-        if(x < 0 || y < 0 || x > width || y > height) {
+        if(x < 0 || y < 0 || x > menuWidth || y > menuHeight) {
           if(!timer) {
             timer = setInterval(hideContextMenu, 1000);
           }

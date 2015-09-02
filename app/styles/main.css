@@ -31,13 +31,14 @@ h1 {
   margin-top: 9px;
   margin-bottom: 4.5px;
   margin-left: 12px;
+
 }
 
 h1 small {
   text-transform: uppercase;
-  font-style: italic;
-  font-weight: 500;
-  color: #999999;
+  font-weight: 400;
+  font-size: 20px;
+  color: #999;
 }
 
 h2 {
@@ -46,9 +47,9 @@ h2 {
 
 h2 small {
   text-transform: uppercase;
-  font-style: italic;
-  font-weight: 500;
-  color: #999999;
+  font-weight: 400;
+  font-size: 16px;
+  color: #999;
 }
 
 
@@ -87,7 +88,7 @@ h2 small {
 
 .label {
   stroke: #231f20;
-  stroke-width: 0px;
+  stroke-width: 0.5px;
   font-size: 10px;
   pointer-events: none;
 }
@@ -179,7 +180,7 @@ h2 small {
 .modalDialog > div {
   /* width: 400px; */
   max-width: 90%;
-  max-height: 80%;
+  height: 80%;
   position: relative;
   margin: 5% auto;
   padding: 5px 20px 13px 20px;
@@ -193,14 +194,16 @@ h2 small {
 .close {
   background: #606061;
   color: #f3f3f4;
-  line-height: 25px;
   position: absolute;
   right: -12px;
-  text-align: center;
   top: -10px;
   width: 24px;
+  line-height: 24px;
+  text-align: center;
   text-decoration: none;
   font-weight: bold;
+  font-size: 14px;
+  border: none;
   -webkit-border-radius: 12px;
   -moz-border-radius: 12px;
   border-radius: 12px;
@@ -212,3 +215,15 @@ h2 small {
 .close:hover { background: #27aae1; }
 
 
+
+.linkButton {
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  font: inherit;
+  color: #27aae1;
+  border-bottom: 1px solid #27aae1;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 13px;
+}

@@ -25,7 +25,7 @@
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
-    <h1>Lobbyist Activity - Contacts of Public Officials <small>City of San Francisco</small></h1>
+    <h1>Lobbyist Activity - Contacts of Public Officials <small> City of San Francisco</small></h1>
 
     <div id="group1" class="group">Lobbyist Firm</div>
     <div id="group2" class="group">City Department</div>
@@ -38,11 +38,9 @@
       </ul>
     </div>
 
-
-
     <div id="openModal" class="modalDialog">
       <div id="openModalDiv">
-        <a title="Close" class="close" href="#" onclick="closeConnectionsModal()">X</a>
+        <button class="close" onclick="closeConnectionsModal()">X</button>
         <h2 id="connectionName">Node Name</h2>
         <div>
           <table id="connectionsTable" class="display">
@@ -58,6 +56,29 @@
         </div>
       </div>
     </div>
+
+    <div id="openDetailsModal" class="modalDialog">
+      <div id="openDetailsModalDiv">
+        <button class="close" onclick="closeDetailsModal()">X</button>
+        <h2 id="detailsName">Contact between 1 and 2</h2>
+        <div>
+          <table id="detailsTable" class="display">
+              <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Subject Area</th>
+                    <th>Municipal Decision</th>
+                    <th>Desired Outcome</th>
+                    <th>Lobbyist Client</th>
+                    <th>Offical</th>
+                  </tr>
+              </thead>
+              <tbody id="detailsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
     <!--
