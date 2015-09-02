@@ -36,22 +36,23 @@
 
 var nodes, links, graph, group1top, group2top;
 
-var height = window.innerHeight; //800
+var height = window.innerHeight - 86; //800  (top bar is 66px)
 var width = window.innerWidth; //1400
+
+
 
 //Construct a force layout...
 var force = d3.layout.force()
     .size([width, height])
-    //.linkDistance(400)
-    /*
+    .linkDistance(width/6)
     .linkStrength(function(d) {
-      console.log(d.value);
-      return 0.5;
-    }) */
+      //console.log(d.value);
+      return 0.3;
+    })
     .gravity(0.2) //0.9
-    .charge(-300) //-300
-    .alpha(0.1)
-    //.chargeDistance(600)
+    .charge(-100) //-300
+    //.alpha(0.1)
+    //.chargeDistance(240)
     ;
 
 /* defaults:
@@ -116,12 +117,13 @@ function collide(alpha) {
 
 
 
-
 var drag = force.drag()
       .on('dragstart', dragstart);
 
 //Drag fixes the node's position.
 function dragstart(d) {
+  force.stop(); //fish:????
+
   var dragNode = d3.select(this);
   dragNode.classed('fixed', d.fixed = true);
   dragNode
@@ -153,6 +155,19 @@ function sortByWeightDesc(a, b) {
 }
 
 
+function sortByGraphWeightDesc(a, b) {
+  var a1 = graph.getAllEdgesOf(a.name).length;
+  var b1 = graph.getAllEdgesOf(b.name).length;
+
+  if(a1 < b1) {
+    return 1;
+  }
+  else if(a1 > b1) {
+    return -1;
+  }
+  return 0;
+}
+
 function findTop5() {
   group1top = [];
   group2top = [];
@@ -166,57 +181,55 @@ function findTop5() {
     }
   });
 
-  group1top.sort(sortByWeightDesc);
-  group2top.sort(sortByWeightDesc);
+  group1top.sort(sortByGraphWeightDesc);
+  group2top.sort(sortByGraphWeightDesc);
 
   group1top = group1top.slice(0, 5);
   group2top = group2top.slice(0, 5);
+
+
+  var yPositions = [];
+  var segment = height / 6;
+
+  for(var i=1; i < 6; i++) {
+    yPositions.push(segment * i);
+  }
+
+  group1top.forEach(function(g1, i1) {
+    g1.top5 = true;
+    g1.y = yPositions[i1];
+  });
+
+  group2top.forEach(function(g2, i2) {
+    g2.top5 = true;
+    g2.y = yPositions[i2];
+  });
+
 }
 
+
+//Re-build with initial value for top5. (Arrange Top 5)
+var displayTop5 = false;
 
 //Set fixed position for top 5 nodes of each group
 function arrange() {
-  group1top.forEach(function(n1) {
-    var cx = width / 4;
-    //var cy = height / 3;
+  displayTop5 = !displayTop5;
 
-    n1.x = cx;
-    //n1.y = cy;
+  var btn = d3.select('#arrangeBtn');
 
-    var node1 = d3.select(document.getElementById(n1.name.replace(/&/g, '')));
+  if(displayTop5) {
+    btn.node().textContent = 'Reinit';
+  }
+  else {
+    btn.node().textContent = 'Arrange Top 5';
+  }
 
-    node1.classed('fixed', n1.fixed = true);
-
-    node1
-      .select('.label')
-      .attr('opacity', 1.0)
-
-    node1.selectAll('circle')
-      .attr('cx', function(d) { return d.x; });
-        //.attr('cy', function(d) { return d.y; });
-
-    node1.selectAll('text')
-      .attr('x', function (d) { return d.x; });
-      //.attr('y', function (d) { return d.y; });
-
-
-    console.log('--------');
-    console.log(node1.node());
-    console.log(n1);
-  });
-
-
-/*
-  var cx2 = (width / 2) + cx;
-*/
-
-  //force.resume();
-
+  buildGraphVisual();
 }
 
 
 
-//Content Menu
+//Context Menu
 
 var connectionsTable = null;
 var contextMenuList = [];
@@ -278,11 +291,11 @@ function viewConnectionInfo() {
     .css('opacity', 1)
     .css('pointer-events', 'auto');
 
-  var height = document.getElementById('openModalDiv').clientHeight;
+  var modalHeight = document.getElementById('openModalDiv').clientHeight;
 
   connectionsTable = $('#connectionsTable').DataTable({
     paging: false,
-    scrollY: (height - 228)
+    scrollY: (modalHeight - 228)
   });
 
 }
@@ -326,275 +339,296 @@ var svg = d3.select('body').append('svg')
     .attr('height', height);
 
 
-d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
-  if(error) throw error;
 
-  var columns = lobbyistsContacts.meta.view.columns;
+function buildGraphVisual() {
+  d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
+    svg.selectAll('*').remove();
 
-  //Create the structures needed by d3 force layout.
-  //
-  //  TODO: Maybe move this code to the Graph data structure and use (new) methods
-  //        of the Graph class to export into d3 format for force layout.
-  //
+    if(error) throw error;
 
-  //for d3
-  nodes = [];
-  links = [];
+    var columns = lobbyistsContacts.meta.view.columns;
 
-  //for arc-bubble diagram
-  graph = new Graph();
+    //Create the structures needed by d3 force layout.
+    //
+    //  TODO: Maybe move this code to the Graph data structure and use (new) methods
+    //        of the Graph class to export into d3 format for force layout.
+    //
 
-  //Build Nodes
-  lobbyistsContacts.data.forEach(function(nodeSets) {
+    //for d3
+    nodes = [];
+    links = [];
 
-    //Convert from array into object.
-    var obj = nodeSets.reduce(function(o, v, i) {
-      o[columns[i].name] = v;
-      return o;
-    }, {});
+    //for arc-bubble diagram
+    graph = new Graph();
 
-    //Group1
-    // -- Lobbyist
-    // -- Lobbyist Firm
-    // -- Lobbyist Client
-    var n1 = graph.addNode(obj.Lobbyist_Firm);
+    //Build Nodes
+    lobbyistsContacts.data.forEach(function(nodeSets) {
 
-    if(typeof n1 !== 'undefined') {
-      n1.group = 1;
-    }
+      //Convert from array into object.
+      var obj = nodeSets.reduce(function(o, v, i) {
+        o[columns[i].name] = v;
+        return o;
+      }, {});
 
-    //Group2
-    // -- Official
-    // -- Official_Department
-    var n2 = graph.addNode(obj.Official_Department);
+      //Group1
+      // -- Lobbyist
+      // -- Lobbyist Firm
+      // -- Lobbyist Client
+      var n1 = graph.addNode(obj.Lobbyist_Firm);
 
-    if(typeof n2 !== 'undefined') {
-      n2.group = 2;
-    }
-  });
-
-
-  //Add Edges
-  lobbyistsContacts.data.forEach(function(lobbyistsContact) {
-
-    //Convert from array into object.
-    var edgeObj = lobbyistsContact.reduce(function(o, v, i) {
-      o[columns[i].name] = v;
-      return o;
-    }, {});
-
-    var fromId = edgeObj.Lobbyist_Firm;
-    var toId = edgeObj.Official_Department;
-    var edge = graph.getEdge(fromId, toId);
-
-    if(edge) {
-      edge.weight++;
-      edge.weightList.push(edgeObj);
-    }
-    else {
-      var newEdge = graph.addEdge(fromId, toId);
-      newEdge.weightList = [];
-      newEdge.weightList.push(edgeObj);
-    }
-  });
-
-  //Create nodes and edges arrays for d3 force layout.
-  var indexByName = {};
-  var i = 0;
-
-  graph.forEachNode(function(nodeObject, nodeId) {
-    nodes.push({ name: nodeId, group: nodeObject.group });
-    indexByName[nodeId] = i;
-    i++;
-  });
-
-  graph.forEachNode(function(nodeObject, nodeId) {
-    if(nodeObject.group === 1) {
-      var outEdges = graph.getOutEdgesOf(nodeId);
-      outEdges.forEach(function(theEdge) {
-        links.push({ source: indexByName[theEdge.fromId], target: indexByName[theEdge.toId], value: theEdge.weight });
-      });
-    }
-  });
-
-
-  force
-      .nodes(nodes)
-      .links(links)
-      .start();
-
-  findTop5();
-
-  var link = svg.selectAll('.link')
-      .data(links)
-    .enter().append('line')
-      .attr('class', 'link');
-
-  var node = svg.selectAll('.node')
-      .data(nodes)
-    .enter().append('g')
-      .attr('id', function (d) { return d.name.replace(/&/g, ''); })
-      .attr('class', 'node')
-      .on('dblclick', dblclick)
-      .on('mouseover', function (d) { onMouseOver(d); })
-      .on('mouseout', function (d) { onMouseOut(); })
-      .on("contextmenu", function(d, i) { contextMenu(d, i); })
-      .call(drag);
-
-  node.append('circle')
-      .attr('r', function(d) {
-        var cx = width / 4;
-        var cy = height / 3;
-
-        if(d.group === 2) {
-          cx = (width / 2) + cx;
-        }
-
-        //Set initial position
-        d.x = cx;
-        d.y = cy;
-
-        d.radius = (d.weight <= 5 ? 5 : d.weight);
-        d.radius = d.radius / 2;
-        return d.radius;
-      })
-      .style('fill', function(d) {
-        if(d.group === 1) {
-          return '#27aae1'; //blue
-        }
-        else {
-          return '#f57c22'; //orange
-        }
-        //return color(d.group);
-      });
-
-
-  var label = node.append('text')
-      .text(function(d) { return (d.name + ' (' + d.weight + ')'); })
-      .attr('class', 'label')
-      .attr('dx', function(d) {
-        var textLength = this.getComputedTextLength();
-        return -(textLength/2); //centered
-      })
-      .attr('dy', '.35em')
-      .attr('opacity', 0);
-
-
-  force.on('tick', function(e) {
-    link.attr('x1', function(d) { return d.source.x; })
-        .attr('y1', function(d) { return d.source.y; })
-        .attr('x2', function(d) { return d.target.x; })
-        .attr('y2', function(d) { return d.target.y; });
-
-    node.selectAll('circle')
-        .each(cluster(.2 * e.alpha))
-        .each(collide(1)) //was .5
-        .attr('cx', function(d) { return d.x; })
-        .attr('cy', function(d) { return d.y; });
-
-    node.selectAll('text')
-      .attr('x', function (d) { return d.x; })
-      .attr('y', function (d) { return d.y; });
-  });
-
-
-
-
-
-
-  //Create an index of connections between nodes
-  var linkedByIndex = {};
-  for(i = 0; i < nodes.length; i++) {
-    linkedByIndex[i + ',' + i] = 1;
-  };
-  links.forEach(function (d) {
-    linkedByIndex[d.source.index + ',' + d.target.index] = 1;
-  });
-
-  function connected(a, b) {
-    return linkedByIndex[a.index + ',' + b.index];
-  }
-
-  //Highlight by reducing opacity of non-connected nodes
-  function onMouseOver(d) {
-    node.style('opacity', function (o) {
-      return connected(d, o) | connected(o, d) ? 1 : 0.1;
-    });
-
-    label.style('opacity', function (o) {
-      if(d.name === o.name) {
-        return 1;
+      if(typeof n1 !== 'undefined') {
+        n1.group = 1;
       }
-      return connected(d, o) | connected(o, d) ? 0.7 : 0;
-    });
 
-    link.style('opacity', function (o) {
-      return d.index === o.source.index | d.index === o.target.index ? 1 : 0.1;
-    });
-  }
+      //Group2
+      // -- Official
+      // -- Official_Department
+      var n2 = graph.addNode(obj.Official_Department);
 
-  //Remove highlight
-  function onMouseOut() {
-    node.style('opacity', 1);
-    link.style('opacity', 1);
-
-    label.style('opacity', function(d) {
-      if(typeof d.fixed !== 'undefined') {
-        return 1.0;
+      if(typeof n2 !== 'undefined') {
+        n2.group = 2;
       }
-      return 0.0;
     });
-  }
 
 
-  //Context Menu - handle right click
-  function contextMenu(d, i) {
-    d3.event.preventDefault(); //stop showing browser menu
+    //Add Edges
+    lobbyistsContacts.data.forEach(function(lobbyistsContact) {
 
-    selectedNode = d;
+      //Convert from array into object.
+      var edgeObj = lobbyistsContact.reduce(function(o, v, i) {
+        o[columns[i].name] = v;
+        return o;
+      }, {});
 
-    var x = d3.event.pageX,
-        y = d3.event.pageY;
+      var fromId = edgeObj.Lobbyist_Firm;
+      var toId = edgeObj.Official_Department;
+      var edge = graph.getEdge(fromId, toId);
 
-    d3.select('#context_menu')
-      .style('left', x + 'px')
-      .style('top', y + 'px')
-      .style('display', 'block');
-
-    contextMenuOpen = true;
-  }
-
-
-  function mousemove() {
-    if(contextMenuOpen) {
-      var coordinates = d3.mouse(d3.select('#context_menu').node());
-
-      var x = coordinates[0];
-          y = coordinates[1];
-
-      var menu = document.getElementById('context_menu_list');
-
-      var height = menu.offsetHeight,
-          width = menu.offsetWidth;
-
-      //If outside, set timer unless it already exists...
-      if(x < 0 || y < 0 || x > width || y > height) {
-        if(!timer) {
-          timer = setInterval(hideContextMenu, 1000);
-        }
+      if(edge) {
+        edge.weight++;
+        edge.weightList.push(edgeObj);
       }
-      //If inside, remove timer...
       else {
-        if(timer) {
-          clearInterval(timer);
-          timer = null;
+        var newEdge = graph.addEdge(fromId, toId);
+        newEdge.weightList = [];
+        newEdge.weightList.push(edgeObj);
+      }
+    });
+
+    //Create nodes and edges arrays for d3 force layout.
+    var indexByName = {};
+    var i = 0;
+
+    var cy = height / 3;
+
+    graph.forEachNode(function(nodeObject, nodeId) {
+      var cx = width / 4;
+
+      if(nodeObject.group === 2) {
+        cx = (width / 2) + cx;
+      }
+
+      nodes.push({ name: nodeId, group: nodeObject.group, x: cx, y: cy }); //Set initial position
+      indexByName[nodeId] = i;
+      i++;
+    });
+
+    graph.forEachNode(function(nodeObject, nodeId) {
+      if(nodeObject.group === 1) {
+        var outEdges = graph.getOutEdgesOf(nodeId);
+        outEdges.forEach(function(theEdge) {
+          links.push({ source: indexByName[theEdge.fromId], target: indexByName[theEdge.toId], value: theEdge.weight });
+        });
+      }
+    });
+
+    if(displayTop5) {
+      findTop5();
+    }
+
+    force
+        .nodes(nodes)
+        .links(links)
+        .start();
+
+    var link = svg.selectAll('.link')
+        .data(links)
+      .enter().append('line')
+        .attr('class', 'link');
+
+    var node = svg.selectAll('.node')
+        .data(nodes)
+      .enter().append('g')
+        .attr('id', function (d) { return d.name.replace(/&/g, ''); })
+        .attr('class', 'node')
+        .on('dblclick', dblclick)
+        .on('mouseover', function (d) { onMouseOver(d); })
+        .on('mouseout', function (d) { onMouseOut(); })
+        .on("contextmenu", function(d, i) { contextMenu(d, i); })
+        .call(drag);
+
+    node.append('circle')
+        .attr('r', function(d) {
+          //set top5 to fixed
+          if(typeof d.top5 !== 'undefined' && d.top5) {
+            d.fixed = true;
+
+            //Set parent 'g' class to fixed.
+            var dNode = d3.select(this.parentNode);
+            dNode.classed('fixed', d.fixed = true);
+          }
+
+          d.radius = (d.weight <= 5 ? 5 : d.weight);
+          d.radius = d.radius / 2;
+          return d.radius;
+        })
+        .style('fill', function(d) {
+          if(d.group === 1) {
+            return '#27aae1'; //blue
+          }
+          else {
+            return '#f57c22'; //orange
+          }
+        });
+
+
+    var label = node.append('text')
+        .text(function(d) { return (d.name + ' (' + d.weight + ')'); })
+        .attr('class', 'label')
+        .attr('dx', function(d) {
+          var textLength = this.getComputedTextLength();
+          return -(textLength/2); //centered
+        })
+        .attr('dy', '.35em')
+        .attr('opacity', function(d) {
+          if(d.fixed) {
+            return 1.0;
+          }
+          else {
+            return 0;
+          }
+        });
+
+
+    force.on('tick', function(e) {
+      link.attr('x1', function(d) { return d.source.x; })
+          .attr('y1', function(d) { return d.source.y; })
+          .attr('x2', function(d) { return d.target.x; })
+          .attr('y2', function(d) { return d.target.y; });
+
+      node.selectAll('circle')
+          //fish: .each(cluster(.2 * e.alpha))
+          .each(collide(1)) //was .5
+          .attr('cx', function(d) { return d.x; })
+          .attr('cy', function(d) { return d.y; });
+
+      node.selectAll('text')
+        .attr('x', function (d) { return d.x; })
+        .attr('y', function (d) { return d.y; });
+    });
+
+
+
+
+
+
+    //Create an index of connections between nodes
+    var linkedByIndex = {};
+    for(i = 0; i < nodes.length; i++) {
+      linkedByIndex[i + ',' + i] = 1;
+    };
+    links.forEach(function (d) {
+      linkedByIndex[d.source.index + ',' + d.target.index] = 1;
+    });
+
+    function connected(a, b) {
+      return linkedByIndex[a.index + ',' + b.index];
+    }
+
+    //Highlight by reducing opacity of non-connected nodes
+    function onMouseOver(d) {
+      node.style('opacity', function (o) {
+        return connected(d, o) | connected(o, d) ? 1 : 0.1;
+      });
+
+      label.style('opacity', function (o) {
+        if(d.name === o.name) {
+          return 1;
+        }
+        return connected(d, o) | connected(o, d) ? 0.7 : 0;
+      });
+
+      link.style('opacity', function (o) {
+        return d.index === o.source.index | d.index === o.target.index ? 1 : 0.1;
+      });
+    }
+
+    //Remove highlight
+    function onMouseOut() {
+      node.style('opacity', 1);
+      link.style('opacity', 1);
+
+      label.style('opacity', function(d) {
+        if(typeof d.fixed !== 'undefined') {
+          return 1.0;
+        }
+        return 0.0;
+      });
+    }
+
+
+    //Context Menu - handle right click
+    function contextMenu(d, i) {
+      d3.event.preventDefault(); //stop showing browser menu
+
+      selectedNode = d;
+
+      var x = d3.event.pageX,
+          y = d3.event.pageY;
+
+      d3.select('#context_menu')
+        .style('left', x + 'px')
+        .style('top', y + 'px')
+        .style('display', 'block');
+
+      contextMenuOpen = true;
+    }
+
+
+    function mousemove() {
+      if(contextMenuOpen) {
+        var coordinates = d3.mouse(d3.select('#context_menu').node());
+
+        var x = coordinates[0];
+            y = coordinates[1];
+
+        var menu = document.getElementById('context_menu_list');
+
+        var height = menu.offsetHeight,
+            width = menu.offsetWidth;
+
+        //If outside, set timer unless it already exists...
+        if(x < 0 || y < 0 || x > width || y > height) {
+          if(!timer) {
+            timer = setInterval(hideContextMenu, 1000);
+          }
+        }
+        //If inside, remove timer...
+        else {
+          if(timer) {
+            clearInterval(timer);
+            timer = null;
+          }
         }
       }
     }
-  }
 
 
-  d3.select('body')
-    .on("mousemove", mousemove);
+    d3.select('body')
+      .on("mousemove", mousemove);
 
-});
+  });
+}
+
+
+buildGraphVisual();

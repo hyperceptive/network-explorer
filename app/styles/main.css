@@ -68,8 +68,8 @@ h1 {
 
 .label {
   stroke: #231f20;
-  stroke-width: 0.5px;
-  font-size: 9px;
+  stroke-width: 0px;
+  font-size: 10px;
   pointer-events: none;
 }
 
@@ -95,8 +95,8 @@ h1 {
 
 .stick-top-right {
   position: absolute;
-  top: 9px;
-  right: 12px;
+  top: 12px;
+  right: 15px;
 }
 
 
