@@ -117,7 +117,7 @@ function popularityDesc(a, b) {
 }
 
 
-function updateChartData(focusEntity) {
+function updateChartData() {
   arcData = [];
   arcDataById = {};
   bubbleData = [];
@@ -126,18 +126,13 @@ function updateChartData(focusEntity) {
   relationshipsByArcId = {};
   relationshipsByBubbleId = {};
 
-  console.log(focusEntity);
-
   var arcId = 'fromId',
       bubbleId = 'toId';
-
 
   if(selectedNode.group === 2) {
     arcId = 'toId';
     bubbleId = 'fromId';
   }
-
-
 
   //Get Bubbles for input entity
   var tmpBubbles = [];
@@ -154,14 +149,15 @@ function updateChartData(focusEntity) {
 
   //Loop over the bubbles and calculate the arcs.
   tmpBubbles.forEach(function(bubble) {
+    var weight = graph.getAllEdgesOf(bubble.code).length;
     var bubbleAdded = false;
     var bubbleObj = {
       id: bubble.code,
       name: bubble.code,
       //fish: type: bubble.type,
-      group: bubble.group
+      group: bubble.group,
       //fish: groupName: bubble.groupName,
-      //fish: value: bubble.popularity
+      value: weight
     };
 
     //Get possible arcs for the current bubble.
@@ -197,9 +193,9 @@ function updateChartData(focusEntity) {
             id: arc.code,
             name: arc.code,
             //fish: type: arc.type,
-            group: arc.group
+            group: arc.group,
             //fish: groupName: arc.groupName,
-            //fish: value: 1  //fish: use "arc.popularity" for arc size?
+            value: 1  //fish: use "arc.popularity" for arc size?
           };
 
           if(arcDataById[arcObj.id]) {

@@ -416,20 +416,20 @@ function closeDetailsModal() {
 // Open the other visualization.
 
 function openConnectionExplorer() {
-  console.log('Open the connection explorer for node...'); //fish
-
   hideContextMenu();
+
+  focusEntity = selectedNode;
+
+  updateChartData();
 
   initialize();
 
-  updateChartData(selectedNode);
   updateLabels();
   updateArcs();
   updateConnectors(relationships);
   updateBubbles();
   updateBubbleLabels();
-  highlightMostRelevant();
-
+  //fish: highlightMostRelevant();
 }
 
 
