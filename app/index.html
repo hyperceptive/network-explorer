@@ -31,6 +31,11 @@
     <div id="group2" class="group">City Department</div>
     <button id="arrangeBtn" class="btn stick-top-right" onclick="arrange()">Arrange Top 5</button>
 
+    <section id="chartArea">
+      <div id="hcChartTitle" class="hcChartTitle"></div>
+      <svg id="svgChart"></svg>
+    </section>
+
     <div id="context_menu">
       <ul id="context_menu_list" class="contextMenu">
         <li onclick="viewConnectionInfo()">View Connection Info</li>
@@ -101,7 +106,10 @@
     <!-- endbuild -->
 
     <!-- build:js scripts/main.js -->
+    <script src="scripts/data.js"></script>
     <script src="scripts/graph.js"></script>
+    <script src="scripts/initialize.js"></script>
+    <script src="scripts/arcBubbleChart.js"></script>
     <script src="scripts/main.js"></script>
     <!-- endbuild -->
 

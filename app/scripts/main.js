@@ -309,7 +309,7 @@ function viewConnectionInfo() {
   connectionsTable = $('#connectionsTable').DataTable({
     paging: false,
     scrollY: modalHeight,
-    "columns": [
+    columns: [
         null,
         { width: '120px', className: 'dt-right' },
         { width: '120px', className: 'dt-center' },
@@ -420,6 +420,15 @@ function openConnectionExplorer() {
 
   hideContextMenu();
 
+  initialize();
+
+  updateChartData(selectedNode);
+  updateLabels();
+  updateArcs();
+  updateConnectors(relationships);
+  updateBubbles();
+  updateBubbleLabels();
+  highlightMostRelevant();
 
 }
 
@@ -438,76 +447,18 @@ function buildGraphVisual() {
 
     if(error) throw error;
 
-    var columns = lobbyistsContacts.meta.view.columns;
-
     //Create the structures needed by d3 force layout.
     //
     //  TODO: Maybe move this code to the Graph data structure and use (new) methods
     //        of the Graph class to export into d3 format for force layout.
     //
 
-    //for d3
+    buildGraph(lobbyistsContacts);
+
+    //From the graph, create nodes and links for d3 force layout.
     nodes = [];
     links = [];
 
-    //for arc-bubble diagram
-    graph = new Graph();
-
-    //Build Nodes
-    lobbyistsContacts.data.forEach(function(nodeSets) {
-
-      //Convert from array into object.
-      var obj = nodeSets.reduce(function(o, v, i) {
-        o[columns[i].name] = v;
-        return o;
-      }, {});
-
-      //Group1
-      // -- Lobbyist
-      // -- Lobbyist Firm
-      // -- Lobbyist Client
-      var n1 = graph.addNode(obj.Lobbyist_Firm);
-
-      if(typeof n1 !== 'undefined') {
-        n1.group = 1;
-      }
-
-      //Group2
-      // -- Official
-      // -- Official_Department
-      var n2 = graph.addNode(obj.Official_Department);
-
-      if(typeof n2 !== 'undefined') {
-        n2.group = 2;
-      }
-    });
-
-
-    //Add Edges
-    lobbyistsContacts.data.forEach(function(lobbyistsContact) {
-
-      //Convert from array into object.
-      var edgeObj = lobbyistsContact.reduce(function(o, v, i) {
-        o[columns[i].name] = v;
-        return o;
-      }, {});
-
-      var fromId = edgeObj.Lobbyist_Firm;
-      var toId = edgeObj.Official_Department;
-      var edge = graph.getEdge(fromId, toId);
-
-      if(edge) {
-        edge.weight++;
-        edge.weightList.push(edgeObj);
-      }
-      else {
-        var newEdge = graph.addEdge(fromId, toId);
-        newEdge.weightList = [];
-        newEdge.weightList.push(edgeObj);
-      }
-    });
-
-    //Create nodes and edges arrays for d3 force layout.
     var indexByName = {};
     var i = 0;
 

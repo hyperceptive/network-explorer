@@ -1,66 +1,69 @@
 'use strict';
 
 
-function buildGraph(nodeSets) {
+function buildGraph(connections) {
+  //Build the graph structure
   graph = new Graph();
 
-  var nodeSetsMax = nodeSets.length - 1;
-  var highestRelevance = 0;
+  var columns = connections.meta.view.columns;
 
   //Add Nodes
-  nodeSets.forEach(function(nodeSet, i) {
-    var obj = { level: i, name: nodeSet.name, list: [], groups: {} };
+  connections.data.forEach(function(nodeSets) {
 
-    vizLevelByIndex[i] = obj;
+    //Convert from array into object.
+    var obj = nodeSets.reduce(function(o, v, i) {
+      o[columns[i].name] = v;
+      return o;
+    }, {});
 
-    nodeSet.list.forEach(function(node) {
-      obj.list.push({
-        name: (node.name ? node.name : node.code),
-        relevance: node.relevance,
-        popularity: node.popularity,
-        group: node.group,
-        groupName: node.groupName
-      });
+    //Group1
+    // -- Lobbyist
+    // -- Lobbyist Firm
+    // -- Lobbyist Client
+    var n1 = graph.addNode(obj.Lobbyist_Firm);
 
-      if(!obj.groups[node.group]) {
-        obj.groups[node.group] = { name: node.groupName, list: [] };
-      }
+    if(typeof n1 !== 'undefined') {
+      n1.code = obj.Lobbyist_Firm;
+      n1.group = 1;
+    }
 
-      obj.groups[node.group].list.push(node.name);
+    //Group2
+    // -- Official
+    // -- Official_Department
+    var n2 = graph.addNode(obj.Official_Department);
 
-      var newNode = graph.addNode(node.code);
-      newNode.code = node.code;
-      newNode.name = (node.name ? node.name : node.code);
-      newNode.type = nodeSet.name;
-      newNode.relevance = node.relevance;
-      newNode.popularity = node.popularity;
-      newNode.group = node.group;
-      newNode.groupName = node.groupName;
-
-      //Initial Focus Entity has the highest relevance
-      if(newNode.relevance > highestRelevance) {
-        highestRelevance = newNode.relevance;
-        focusEntity = newNode;
-      }
-    });
-
-    obj.list.sort(popularityDesc);
+    if(typeof n2 !== 'undefined') {
+      n2.code = obj.Official_Department;
+      n2.group = 2;
+    }
   });
 
   //Add Edges
-  nodeSets.forEach(function(nodeSet, nodeSetIndex) {
-    nodeSet.list.forEach(function(node) {
-      var toSetIndex = (nodeSetIndex === nodeSetsMax ? 0 : nodeSetIndex + 1);
-      node.connections.forEach(function(connection, connectionIndex) {
-        if(connection !== 0) {
-          graph.addEdge(node.code, nodeSets[toSetIndex].list[connectionIndex].code, connection);
-        }
-      });
-    });
+  connections.data.forEach(function(lobbyistsContact) {
+
+    //Convert from array into object.
+    var edgeObj = lobbyistsContact.reduce(function(o, v, i) {
+      o[columns[i].name] = v;
+      return o;
+    }, {});
+
+    var fromId = edgeObj.Lobbyist_Firm;
+    var toId = edgeObj.Official_Department;
+    var edge = graph.getEdge(fromId, toId);
+
+    if(edge) {
+      edge.weight++;
+      edge.weightList.push(edgeObj);
+    }
+    else {
+      var newEdge = graph.addEdge(fromId, toId);
+      newEdge.weightList = [];
+      newEdge.weightList.push(edgeObj);
+    }
   });
 }
 
-
+/*
 function buildTitleMap(titles) {
   titleMap = {};
 
@@ -75,6 +78,7 @@ function buildTitleMap(titles) {
     }
   });
 }
+*/
 
 
 function addRelationship(map, id, relationship) {
@@ -83,6 +87,8 @@ function addRelationship(map, id, relationship) {
   }
   map[id].push(relationship);
 }
+
+
 
 function weightDesc(a, b) {
   var a1 = a.weight;
@@ -111,7 +117,7 @@ function popularityDesc(a, b) {
 }
 
 
-function updateChartData() {
+function updateChartData(focusEntity) {
   arcData = [];
   arcDataById = {};
   bubbleData = [];
@@ -120,12 +126,25 @@ function updateChartData() {
   relationshipsByArcId = {};
   relationshipsByBubbleId = {};
 
-  //Get Bubbles for the focusEntity
+  console.log(focusEntity);
+
+  var arcId = 'fromId',
+      bubbleId = 'toId';
+
+
+  if(selectedNode.group === 2) {
+    arcId = 'toId';
+    bubbleId = 'fromId';
+  }
+
+
+
+  //Get Bubbles for input entity
   var tmpBubbles = [];
-  var tmpBubbleEdges = graph.getInEdgesOf(focusEntity.code);
+  var tmpBubbleEdges = graph.getAllEdgesOf(focusEntity.name);
   tmpBubbleEdges.sort(weightDesc);
   tmpBubbleEdges.forEach(function(bubbleEdge) {
-    tmpBubbles.push(graph.getNode(bubbleEdge.fromId));
+    tmpBubbles.push(graph.getNode(bubbleEdge[bubbleId]));
   });
 
   tmpBubbles.sort(popularityDesc);
@@ -138,26 +157,33 @@ function updateChartData() {
     var bubbleAdded = false;
     var bubbleObj = {
       id: bubble.code,
-      name: bubble.name,
-      type: bubble.type,
-      group: bubble.group,
-      groupName: bubble.groupName,
-      value: bubble.popularity
+      name: bubble.code,
+      //fish: type: bubble.type,
+      group: bubble.group
+      //fish: groupName: bubble.groupName,
+      //fish: value: bubble.popularity
     };
 
     //Get possible arcs for the current bubble.
     var tmpArcs = [];
-    var tmpArcEdges = graph.getOutEdgesOf(bubble.code);
+    var tmpArcEdges = graph.getAllEdgesOf(bubble.code);
     tmpArcEdges.sort(weightDesc);
     tmpArcEdges.forEach(function(arcEdge) {
-      tmpArcs.push(graph.getNode(arcEdge.toId));
+      tmpArcs.push(graph.getNode(arcEdge[arcId]));
     });
 
-    tmpArcs.sort(popularityDesc);
+    tmpArcs.sort(popularityDesc); //TODO: sort by number of connections / edges
 
     tmpArcs.forEach(function(arc) {
-      if(INCLUDE_FOCUS_ENTITY_IN_ARCS || focusEntity.code !== arc.code) {
-        var edge = graph.getEdge(arc.code, bubble.code);
+      if(INCLUDE_FOCUS_ENTITY_IN_ARCS || focusEntity.name !== arc.code) {
+        var edge;
+
+        if(focusEntity.group === 1) {
+          edge = graph.getEdge(arc.code, bubble.code);
+        }
+        else if(focusEntity.group === 2) {
+          edge = graph.getEdge(bubble.code, arc.code)
+        }
 
         if(typeof edge !== 'undefined') {
           if(!bubbleAdded && bubbleCount < MAX_BUBBLES) {
@@ -169,11 +195,11 @@ function updateChartData() {
 
           var arcObj = {
             id: arc.code,
-            name: arc.name,
-            type: arc.type,
-            group: arc.group,
-            groupName: arc.groupName,
-            value: 1  //fish: use "arc.popularity" for arc size?
+            name: arc.code,
+            //fish: type: arc.type,
+            group: arc.group
+            //fish: groupName: arc.groupName,
+            //fish: value: 1  //fish: use "arc.popularity" for arc size?
           };
 
           if(arcDataById[arcObj.id]) {
@@ -198,7 +224,15 @@ function updateChartData() {
 
   arcData.forEach(function(a) {
     bubbleData.forEach(function(b) {
-      var edge = graph.getEdge(a.id, b.id);
+      var edge;
+
+      if(focusEntity.group === 1) {
+        edge = graph.getEdge(a.id, b.id);
+      }
+      else if(focusEntity.group === 2) {
+        edge = graph.getEdge(b.id, a.id)
+      }
+
       if(typeof edge !== 'undefined') {
         //Add relationships between arcs and bubbles
         var relationship = {
@@ -217,6 +251,7 @@ function updateChartData() {
 }
 
 
+/*
 function updateData(data) {
   vizName = data.eventTitle;
   vizType = data.eventSource + (data.eventDate ? ', ' + data.eventDate : '');
@@ -225,16 +260,6 @@ function updateData(data) {
   buildTitleMap(data.titles);
   updateChartData();
 }
-
-
-
-function loadJson(url, cb) {
-  d3.json(url, function(error, data) {
-    if(cb) { cb(data); }
-  });
-}
-
-
-
+*/
 
 
