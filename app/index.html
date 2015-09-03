@@ -24,17 +24,27 @@
     <!--[if lt IE 10]>
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
+    <div>
+      <h1>Lobbyist Activity - Contacts of Public Officials <small> City of San Francisco</small></h1>
+      <div id="group1" class="group">Lobbyist Firm</div>
+      <div id="group2" class="group">City Department</div>
+    </div>
 
-    <h1>Lobbyist Activity - Contacts of Public Officials <small> City of San Francisco</small></h1>
-
-    <div id="group1" class="group">Lobbyist Firm</div>
-    <div id="group2" class="group">City Department</div>
+    <!-- Put inside graph area. -->
     <button id="arrangeBtn" class="btn stick-top-right" onclick="arrange()">Arrange Top 5</button>
 
-    <section id="chartArea">
-      <div id="hcChartTitle" class="hcChartTitle"></div>
-      <svg id="svgChart"></svg>
-    </section>
+
+    <div class="contentArea">
+      <section id="chartAreaLeft" class="chartArea expanded">
+        <button class="expandCollapseBtn" onclick="expandCollapse('Left')"></button>
+        <svg id="svgChartLeft"></svg>
+      </section>
+
+      <section id="chartAreaRight" class="chartArea">
+        <button class="expandCollapseBtn" onclick="expandCollapse('Right')"></button>
+        <svg id="svgChartRight"></svg>
+      </section>
+    </div>
 
     <div id="context_menu">
       <ul id="context_menu_list" class="contextMenu">
@@ -83,7 +93,6 @@
         </div>
       </div>
     </div>
-
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
     <!--

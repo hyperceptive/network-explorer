@@ -28,23 +28,7 @@ function getGroupColor(group) {
  *
  */
 function updateLabels() {
-  title.text(vizType);
-  subtitle.text(vizName);
-
-  chartTitle.text(focusEntity.name);
-  chartTitle.attr('class', '');
-
-  var classes = 'hcChartTitle';
-  if(drillDirection === 'forward') {
-    classes += ' hcChartTitleForward';
-  }
-  else if(drillDirection === 'backward') {
-    classes += ' hcChartTitleBackward';
-  }
-  setTimeout(function() { chartTitle.attr('class', classes); }, 10); //force animation
-
-  CHART_LABEL = getGroupColor(focusEntity.group);
-  chartTitle.style('color', CHART_LABEL); //change color
+  console.log('updateLables() ???');
 
   /* fish:
   arcTitle.text(vizLevelByIndex[0].name);
@@ -225,7 +209,8 @@ function updateArcs() {
         return angle;
       })
       .style('fill', function(d) {
-        return getGroupColor(arcDataById[d.id].group);
+        return '#231f20';
+        //fish: return getGroupColor(arcDataById[d.id].group);
       })
       .on('mouseover', function (d) { onMouseOver(d, 'arc'); })
       .on('mouseout', function (d) { onMouseOut(d, 'arc'); })
@@ -836,8 +821,10 @@ function onMouseClick(d, type) {
       .ease('exp-in')  //cubic, elastic, bounce, linear
       .attr('r', function(f) { return innerRadius; })
       .each('end', function() {
-        focusEntity = graph.getNode(d.id);
-        updateArcBubbleChart();
+        //fish: focusEntity = graph.getNode(d.id);
+        focusEntity = d;
+        console.log(focusEntity); //fish: yo
+        updateConnectionExplorer();
         drilling = false;
       });
   }
@@ -869,8 +856,10 @@ function onMouseClick(d, type) {
         arcsSvg.selectAll('g.arcs').remove();
         connectorsSvg.selectAll('g.connectors').remove();
 
-        focusEntity = graph.getNode(arcId);
-        updateArcBubbleChart();
+        //fish: focusEntity = graph.getNode(arcId);
+        focusEntity = d;  //fish: wont' for for text...
+
+        updateConnectionExplorer();
         drilling = false;
       });
   }
@@ -933,13 +922,13 @@ function clearContentArea() {
 function updateMaxArcs(value) {
   MAX_ARCS = value;
   createElements();
-  updateArcBubbleChart();
+  updateConnectionExplorer();
 }
 
 function updateMaxBubbles(value) {
   MAX_BUBBLES = value;
   createElements();
-  updateArcBubbleChart();
+  updateConnectionExplorer();
 }
 
 

@@ -6,13 +6,13 @@ var MAX_ARCS = 5,
     HIDE_LABELS = false,
     INCLUDE_FOCUS_ENTITY_IN_ARCS = true;
 
-var NODE_TYPE_1 = '#1478ba', //blue
-    NODE_TYPE_2 = '#7b3890', // '#803b95', //purple
-    NODE_TYPE_3 = '#05a9a9', // '#00e6e3'; //green
-    NODE_TYPE_4 = '#b48441'; //brighter: #D5944D, darker: #83643A //orange   bubble: #F2AD4F
+var NODE_TYPE_1 = '#27aae1', //blue
+    NODE_TYPE_2 = '#f57c22', //orange
+    NODE_TYPE_3 = '#05a9a9', //green -- not used
+    NODE_TYPE_4 = '#b48441'; //orange -- not used
 
-var ARC_STROKE = '#FFF',
-    CONNECTOR_STROKE = '#FFF',
+var ARC_STROKE = '#231f20',
+    CONNECTOR_STROKE = '#231f20',
     CHART_LABEL = '#CCC',
     CALLOUT_BACKGROUND = '#CCC';
 
@@ -68,12 +68,8 @@ var outerRadius,
     arcsTranslateY;
 
 
-//DOM variables
-var title = d3.select(document.getElementById('hcTitle'));
-var subtitle = d3.select(document.getElementById('hcSubTitle'));
-var chartTitle = d3.select(document.getElementById('hcChartTitle'));
+//fish: DOM variables???
 var contentArea = $('#contentAreaTable'); // d3.select(document.getElementById('contentAreaTable'));
-
 var arcTitle = d3.select(document.getElementById('arcTitle'));
 var bubbleTitle = d3.select(document.getElementById('bubbleTitle'));
 
@@ -98,7 +94,7 @@ function logger(message) {
 
 
 function createElements() {
-  var svg = d3.select(document.getElementById('svgChart'));
+  var svg = d3.select(document.getElementById('svgChartRight'));
 
   svg.selectAll('*').remove();
 
@@ -127,28 +123,30 @@ function setupLayout() {
 
 
 function resize() {
-  var chartAreaWidth = 835;
+  var chartWidth = (window.innerWidth / 2) - 18; //divide by 2 if not expanded
+  var chartHeight = window.innerHeight - 98;
 
-  var chartWidth = 900;
-  var chartHeight = 550;
+  if($('#chartAreaRight').hasClass('expanded')) {
+    chartWidth = window.innerWidth - 28; //1400
+  }
 
-  var maxChartWidth = 600;
+  console.log(chartWidth + ' x ' + chartHeight); //fish
 
-  outerRadius = maxChartWidth / 2;
+  outerRadius = 250; // chartWidth / 2; //fish: max???
   innerRadius = outerRadius - 120;
   bubbleRadius = innerRadius - 50;
   connectorRadius = innerRadius - 20;
+
   bubblesTranslateX = (outerRadius - innerRadius) + (innerRadius - bubbleRadius) + 128;
   bubblesTranslateY = (outerRadius - innerRadius) + (innerRadius - bubbleRadius) + 0;
   arcsTranslateX = (outerRadius + 128);
   arcsTranslateY = (outerRadius + 0);
 
-  d3.select(document.getElementById('chartArea'))
-    .style('width', chartAreaWidth + 'px');
 
-  chartTitle.style('width', chartWidth - 30 + 'px');
+  d3.select(document.getElementById('chartAreaRight'))
+    .style('width', chartWidth + 'px');
 
-  d3.select(document.getElementById('svgChart'))
+  d3.select(document.getElementById('svgChartRight'))
     .style('width', chartWidth + 'px')
     .style('height', chartHeight + 'px');
 

@@ -27,6 +27,49 @@ body {
 }
 
 
+
+.expandCollapseBtn {
+  background:url('/images/fullscreen.png') no-repeat;
+  background-position:right 0px;
+  cursor:pointer;
+  height: 20px;
+  width: 20px;
+  border: none;
+  position: absolute;
+  top: 0;
+  right:0;
+}
+
+.expanded .expandCollapseBtn {
+  background-image:url('/images/scale_down.png');
+}
+
+.contentArea {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  display: inline-block;
+}
+
+.chartArea {
+  float: left;
+  position: relative;
+  margin: 4px;
+  border: 1px solid #DDD;
+  background: #f3f3f4;
+}
+
+.chartArea.expanded {
+  float: none;
+  position: absolute;
+  left:0;
+  right:0;
+  z-index: 9999;
+}
+
+
+
+
 h1 {
   margin-top: 9px;
   margin-bottom: 4.5px;
@@ -123,6 +166,7 @@ h2 small {
 #context_menu {
   display: none;
   position: absolute;
+  z-index: 10000;
 }
 
 .contextMenu {
@@ -227,3 +271,42 @@ h2 small {
   font-size: 14px;
   line-height: 13px;
 }
+
+/************************************************************************************
+ CHART INTERNALS
+*************************************************************************************/
+
+.arc {
+  cursor: pointer;
+}
+
+text.arc {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.arcOutline {
+  pointer-events: none;
+}
+
+.bubble {
+  cursor: pointer;
+}
+
+.bubbleLabels > text {
+  text-transform: uppercase;
+  font-weight: bold;
+  fill: #0e2741;
+  pointer-events: none;
+}
+
+.bubbleCenter, .bubbleCenterHighlight {
+  pointer-events: none;
+}
+
+.bubbleLabel {
+  pointer-events: none;
+}
+
+

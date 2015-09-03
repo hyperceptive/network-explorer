@@ -34,36 +34,7 @@
     updated_meta: '400501'
 */
 
-var nodes, links, graph, group1top, group2top;
-
-var height = window.innerHeight - 86; //800  (top bar is ~66px)
-var width = window.innerWidth; //1400
-
-
-
-//Construct a force layout...
-var force = d3.layout.force()
-    .size([width, height])
-    .linkDistance(width/10)
-    //.linkStrength(function(d) {
-    //  return 0.3;
-    //})
-    .gravity(0.15) //0.2
-    .charge(-100) //-300
-    //.alpha(0.1)
-    //.chargeDistance(240)
-    ;
-
-/* defaults:
-    .linkStrength(0.1)  //or 1?
-    .friction(0.9)
-    .linkDistance(20)
-    .charge(-30)
-    .gravity(0.1)
-    .theta(0.8)
-    .alpha(0.1)
-
-*/
+var nodes, links, graph, force, drag, height, width, group1top, group2top;
 
 
 //Cluster the 2 groups around a point.
@@ -114,10 +85,6 @@ function collide(alpha) {
   };
 }
 
-
-
-var drag = force.drag()
-      .on('dragstart', dragstart);
 
 //Drag fixes the node's position.
 function dragstart(d) {
@@ -411,11 +378,31 @@ function closeDetailsModal() {
 
 
 
+function expandCollapse(side) {
+  if(side === 'Left') {
+    $('#chartAreaLeft').toggleClass('expanded');
+  }
+  else if(side === 'Right') {
+    $('#chartAreaRight').toggleClass('expanded');
+  }
+
+  //fish: always??? no. decision table.
+  buildGraphVisual();
+
+  //updateConnectionExplorer();
+}
+
+
 
 
 // Open the other visualization.
 
 function openConnectionExplorer() {
+  //If left side expanded, collapse it first.
+  if($('#chartAreaLeft').hasClass('expanded')) {
+    expandCollapse('Left');
+  }
+
   hideContextMenu();
 
   focusEntity = selectedNode;
@@ -433,17 +420,56 @@ function openConnectionExplorer() {
 }
 
 
+function updateConnectionExplorer() {
+  updateChartData();
 
+  resize();
+  buildArcs();
+  buildBubbles();
 
-var svg = d3.select('body').append('svg')
-    .attr('width', width)
-    .attr('height', height);
-
+  updateLabels();
+  updateArcs();
+  updateConnectors(relationships);
+  updateBubbles();
+  updateBubbleLabels();
+  //fish: highlightMostRelevant();
+}
 
 
 function buildGraphVisual() {
   d3.json('data/lobbyistsContacts.json', function(error, lobbyistsContacts) {
-    svg.selectAll('*').remove();
+
+    if($('#chartAreaLeft').hasClass('expanded')) {
+      width = window.innerWidth - 28; //1400
+    }
+    else {
+      width = (window.innerWidth / 2) - 18; //divide by 2 if not expanded....
+    }
+
+    height = window.innerHeight - 98;  //86  //800  (top bar is ~66px)
+
+
+    //Construct a force layout...
+    force = d3.layout.force()
+        .size([width, height])
+        .linkDistance(width/10)
+        //.linkStrength(function(d) {
+        //  return 0.3;
+        //})
+        .gravity(0.15) //0.2
+        .charge(-100) //-300
+        //.alpha(0.1)
+        //.chargeDistance(240)
+        ;
+
+    drag = force.drag()
+          .on('dragstart', dragstart);
+
+    var svgChartLeft = d3.select('#svgChartLeft')
+        .attr('width', width)
+        .attr('height', height);
+
+    svgChartLeft.selectAll('*').remove();
 
     if(error) throw error;
 
@@ -494,12 +520,12 @@ function buildGraphVisual() {
         .links(links)
         .start();
 
-    var link = svg.selectAll('.link')
+    var link = svgChartLeft.selectAll('.link')
         .data(links)
       .enter().append('line')
         .attr('class', 'link');
 
-    var node = svg.selectAll('.node')
+    var node = svgChartLeft.selectAll('.node')
         .data(nodes)
       .enter().append('g')
         .attr('id', function (d) { return d.name.replace(/&/g, ''); })

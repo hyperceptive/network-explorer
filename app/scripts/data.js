@@ -7,6 +7,18 @@ function buildGraph(connections) {
 
   var columns = connections.meta.view.columns;
 
+  //Group1
+  // -- Lobbyist
+  // -- Lobbyist Firm
+  // -- Lobbyist Client
+  var group1 = 'Lobbyist_Firm';
+
+  //Group2
+  // -- Official
+  // -- Official_Department
+  var group2 = 'Official_Department';
+
+
   //Add Nodes
   connections.data.forEach(function(nodeSets) {
 
@@ -16,24 +28,17 @@ function buildGraph(connections) {
       return o;
     }, {});
 
-    //Group1
-    // -- Lobbyist
-    // -- Lobbyist Firm
-    // -- Lobbyist Client
-    var n1 = graph.addNode(obj.Lobbyist_Firm);
+    var n1 = graph.addNode(obj[group1]);
 
     if(typeof n1 !== 'undefined') {
-      n1.code = obj.Lobbyist_Firm;
+      n1.id = obj[group1];
       n1.group = 1;
     }
 
-    //Group2
-    // -- Official
-    // -- Official_Department
-    var n2 = graph.addNode(obj.Official_Department);
+    var n2 = graph.addNode(obj[group2]);
 
     if(typeof n2 !== 'undefined') {
-      n2.code = obj.Official_Department;
+      n2.id = obj[group2];
       n2.group = 2;
     }
   });
@@ -47,8 +52,8 @@ function buildGraph(connections) {
       return o;
     }, {});
 
-    var fromId = edgeObj.Lobbyist_Firm;
-    var toId = edgeObj.Official_Department;
+    var fromId = edgeObj[group1];
+    var toId = edgeObj[group2];
     var edge = graph.getEdge(fromId, toId);
 
     if(edge) {
@@ -129,7 +134,7 @@ function updateChartData() {
   var arcId = 'fromId',
       bubbleId = 'toId';
 
-  if(selectedNode.group === 2) {
+  if(focusEntity.group === 2) {
     arcId = 'toId';
     bubbleId = 'fromId';
   }
@@ -142,43 +147,41 @@ function updateChartData() {
     tmpBubbles.push(graph.getNode(bubbleEdge[bubbleId]));
   });
 
-  tmpBubbles.sort(popularityDesc);
+  //fish: tmpBubbles.sort(popularityDesc);
 
   var arcCount = 0;
   var bubbleCount = 0;
 
   //Loop over the bubbles and calculate the arcs.
   tmpBubbles.forEach(function(bubble) {
-    var weight = graph.getAllEdgesOf(bubble.code).length;
+    var weight = graph.getAllEdgesOf(bubble.id).length;
     var bubbleAdded = false;
     var bubbleObj = {
-      id: bubble.code,
-      name: bubble.code,
-      //fish: type: bubble.type,
+      id: bubble.id,
+      name: bubble.id,
       group: bubble.group,
-      //fish: groupName: bubble.groupName,
       value: weight
     };
 
     //Get possible arcs for the current bubble.
     var tmpArcs = [];
-    var tmpArcEdges = graph.getAllEdgesOf(bubble.code);
+    var tmpArcEdges = graph.getAllEdgesOf(bubble.id);
     tmpArcEdges.sort(weightDesc);
     tmpArcEdges.forEach(function(arcEdge) {
       tmpArcs.push(graph.getNode(arcEdge[arcId]));
     });
 
-    tmpArcs.sort(popularityDesc); //TODO: sort by number of connections / edges
+    //fish: tmpArcs.sort(popularityDesc); //TODO: sort by number of connections / edges
 
     tmpArcs.forEach(function(arc) {
-      if(INCLUDE_FOCUS_ENTITY_IN_ARCS || focusEntity.name !== arc.code) {
+      if(INCLUDE_FOCUS_ENTITY_IN_ARCS || focusEntity.name !== arc.id) {
         var edge;
 
         if(focusEntity.group === 1) {
-          edge = graph.getEdge(arc.code, bubble.code);
+          edge = graph.getEdge(arc.id, bubble.id);
         }
         else if(focusEntity.group === 2) {
-          edge = graph.getEdge(bubble.code, arc.code)
+          edge = graph.getEdge(bubble.id, arc.id)
         }
 
         if(typeof edge !== 'undefined') {
@@ -190,12 +193,10 @@ function updateChartData() {
           }
 
           var arcObj = {
-            id: arc.code,
-            name: arc.code,
-            //fish: type: arc.type,
+            id: arc.id,
+            name: arc.id,
             group: arc.group,
-            //fish: groupName: arc.groupName,
-            value: 1  //fish: use "arc.popularity" for arc size?
+            value: 1
           };
 
           if(arcDataById[arcObj.id]) {
@@ -216,7 +217,7 @@ function updateChartData() {
     });
   });
 
-  arcData.sort(popularityDesc);
+  //fish: arcData.sort(popularityDesc);
 
   arcData.forEach(function(a) {
     bubbleData.forEach(function(b) {
@@ -245,17 +246,4 @@ function updateChartData() {
   });
 
 }
-
-
-/*
-function updateData(data) {
-  vizName = data.eventTitle;
-  vizType = data.eventSource + (data.eventDate ? ', ' + data.eventDate : '');
-
-  buildGraph(data.nodeSets);
-  buildTitleMap(data.titles);
-  updateChartData();
-}
-*/
-
 
