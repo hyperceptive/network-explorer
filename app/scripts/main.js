@@ -44,12 +44,11 @@ var width = window.innerWidth; //1400
 //Construct a force layout...
 var force = d3.layout.force()
     .size([width, height])
-    .linkDistance(width/6)
-    .linkStrength(function(d) {
-      //console.log(d.value);
-      return 0.3;
-    })
-    .gravity(0.2) //0.9
+    .linkDistance(width/10)
+    //.linkStrength(function(d) {
+    //  return 0.3;
+    //})
+    .gravity(0.15) //0.2
     .charge(-100) //-300
     //.alpha(0.1)
     //.chargeDistance(240)
@@ -275,6 +274,7 @@ function viewConnectionInfo() {
 
   contextMenuList = [];
 
+  //TODO: Can I use connected() and index to find more quickly?
   var edges = graph.getAllEdgesOf(selectedNode.name);
 
   edges.forEach(function(edge) {
@@ -311,8 +311,8 @@ function viewConnectionInfo() {
     scrollY: modalHeight,
     "columns": [
         null,
-        { width: '20px', className: 'dt-right' },
-        { width: '40px', className: 'dt-center' },
+        { width: '120px', className: 'dt-right' },
+        { width: '120px', className: 'dt-center' },
       ]
   });
 
@@ -564,7 +564,6 @@ function buildGraphVisual() {
           //set top5 to fixed
           if(typeof d.top5 !== 'undefined' && d.top5) {
             d.fixed = true;
-
             //Set parent 'g' class to fixed.
             var dNode = d3.select(this.parentNode);
             dNode.classed('fixed', d.fixed = true);
@@ -610,7 +609,7 @@ function buildGraphVisual() {
 
       node.selectAll('circle')
           //fish: .each(cluster(.2 * e.alpha))
-          .each(collide(1)) //was .5
+          .each(collide(0.5)) //was .5
           .attr('cx', function(d) { return d.x; })
           .attr('cy', function(d) { return d.y; });
 
@@ -647,7 +646,8 @@ function buildGraphVisual() {
         if(d.name === o.name) {
           return 1;
         }
-        return connected(d, o) | connected(o, d) ? 0.7 : 0;
+        //return connected(d, o) | connected(o, d) ? 0.7 : 0;
+        return 0;
       });
 
       link.style('opacity', function (o) {
@@ -661,7 +661,7 @@ function buildGraphVisual() {
       link.style('opacity', 1);
 
       label.style('opacity', function(d) {
-        if(typeof d.fixed !== 'undefined') {
+        if(typeof d.fixed !== 'undefined' && d.fixed) {
           return 1.0;
         }
         return 0.0;
