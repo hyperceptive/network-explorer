@@ -116,20 +116,29 @@ function resize() {
     .style('width', chartWidth + 'px')
     .style('height', chartHeight + 'px');
 
-
-  outerRadius = (chartWidth > chartHeight ? chartHeight / 2 : chartWidth / 2);
+  outerRadius = (chartWidth > chartHeight ? chartHeight / 2.3 : chartWidth / 2.3);
   innerRadius = outerRadius - 120;
   bubbleRadius = innerRadius - 50;
   connectorRadius = innerRadius - 20;
 
-  bubblesTranslateX = (outerRadius - innerRadius) + (innerRadius - bubbleRadius) + 0; //128
-  bubblesTranslateY = (outerRadius - innerRadius) + (innerRadius - bubbleRadius) - 60;
-  arcsTranslateX = (outerRadius + 0); //128
-  arcsTranslateY = (outerRadius - 60);
+  bubblesTranslateX = (outerRadius - innerRadius) + (innerRadius - bubbleRadius);
+  bubblesTranslateY = (outerRadius - innerRadius) + (innerRadius - bubbleRadius);
+  arcsTranslateX = outerRadius;
+  arcsTranslateY = outerRadius;
 
+  //Move to middle of X.
+  var middle = chartWidth / 2;
+  var xOffset = 0,
+      yOffset = -80;
 
-  console.log('arc translate: ' + arcsTranslateX + ', ' + arcsTranslateY);
-  console.log('bubble translate: ' + bubblesTranslateX + ', ' + bubblesTranslateY);
+  if(arcsTranslateX < middle) {
+    xOffset = middle - arcsTranslateX;
+  }
+
+  bubblesTranslateX += xOffset;
+  bubblesTranslateY += yOffset;
+  arcsTranslateX += xOffset;
+  arcsTranslateY += yOffset;
 
   arcsSvg.attr('transform', 'translate(' + arcsTranslateX + ',' + arcsTranslateY + ')');
   connectorsSvg.attr('transform', 'translate(' + arcsTranslateX + ',' + arcsTranslateY + ')');
@@ -285,7 +294,7 @@ function wrap(textArr, width) {
       if(tspan.node().getComputedTextLength() > width) {
         lineNumber++;
         var newDy = lineNumber * lineHeight + dy;
-        if(newDy === 35) { //fish: Not sure what's going on with this calculation.
+        if(newDy === 35) { //Not sure what's going on with this calculation.
           newDy = 20;
         }
 
@@ -524,11 +533,6 @@ function updateBubbleLabels() {
     enter.append('text')
       .attr('id', function(d) { return 't_' + d.id.toString().replace(/&/g, ''); })
       .text(function(d) { return d.name; })
-      .style('font-size', function(d) {
-        //console.log('Font Size: ' + Math.min(1, Math.max(0.5, d.r * 2 / bubbleRadius)) * 18 + 'px'); //fish
-        //return Math.min(1, Math.max(0.5, d.r * 2 / bubbleRadius)) * 18 + 'px';
-        return '10px'; //was 12px
-      })
       .attr('dy', function (d, i) {
         //Change yOffset based on height.
         var returnVal = '-3px'; //small text

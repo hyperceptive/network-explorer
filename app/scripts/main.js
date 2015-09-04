@@ -52,8 +52,13 @@ function expandCollapse(side) {
     initConnectionExplorer();
   }
   else {
-    buildGraphVisual();
-    initConnectionExplorer();
+    //Collapsing...
+    if(side === 'Left') {
+      buildGraphVisual();
+    }
+    else if(side === 'Right') {
+      initConnectionExplorer();
+    }
   }
 }
 
@@ -69,9 +74,8 @@ function openConnectionExplorer() {
   if($('#chartAreaLeft').hasClass('expanded')) {
     expandCollapse('Left');
   }
-  else {
-    initConnectionExplorer();
-  }
+
+  initConnectionExplorer();
 }
 
 
@@ -79,7 +83,6 @@ function openConnectionExplorer() {
 function initConnectionExplorer() {
   updateChartData(selectedNode, 'forward');
 
-  //TODO: fish: move to "initArcBubbleChart()"
   initialize();
 
   updateArcs();
@@ -92,7 +95,6 @@ function initConnectionExplorer() {
 function updateConnectionExplorer(focusEntity, direction) {
   updateChartData(focusEntity, direction);
 
-  //TODO: fish: move to "updateArcBubbleChart()"
   resize();
   buildArcs();
   buildBubbles();

@@ -180,11 +180,11 @@ function updateChartData(focusEntity, direction) {
           if(arcDataById[arcObj.id]) {
             //Only increment counter if Bubble was also added.
             if(bubblesById[bubbleObj.id]) {
-              arcDataById[arcObj.id].value++; //fish: just count number of connections????
+              arcDataById[arcObj.id].value++; //just count number of connections
             }
           }
           else {
-            if(arcCount < MAX_ARCS) {
+            if(arcCount < MAX_ARCS || (INCLUDE_FOCUS_ENTITY_IN_ARCS && focusEntity.name === arc.id)) {
               arcCount++;
               arcData.push(arcObj);
               arcDataById[arcObj.id] = arcObj;
@@ -222,5 +222,18 @@ function updateChartData(focusEntity, direction) {
       }
     });
   });
+
+  //Remove unconnected Arcs and Bubbles.
+  for(var i = arcData.length - 1; i >= 0; i--) {
+    if(!relationshipsByArcId.hasOwnProperty(arcData[i].id)) {
+      arcData.splice(i, 1);
+    }
+  }
+
+  for(var j = bubbleData.length - 1; j >= 0; j--) {
+    if(!relationshipsByBubbleId.hasOwnProperty(bubbleData[j].id)) {
+      bubbleData.splice(j, 1);
+    }
+  }
 
 }

@@ -145,9 +145,9 @@ h2 small {
   border: none;
   font-family: Arial;
   color: #f3f3f4;
-  font-size: 16px;
+  font-size: 13px;
   background: #27aae1;
-  padding: 8px 12px 8px 12px;
+  padding: 6px 10px 6px 10px;
   text-decoration: none;
 }
 
@@ -156,9 +156,9 @@ h2 small {
   text-decoration: none;
 }
 
-.stick-top-right {
+.stick-bottom-right {
   position: absolute;
-  top: 12px;
+  bottom: 12px;
   right: 15px;
 }
 
@@ -281,10 +281,15 @@ h2 small {
 }
 
 text.arc {
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 400;
   letter-spacing: 1px;
 }
+
+.expanded text.arc {
+  font-size: 14px;
+}
+
 
 .arcOutline {
   pointer-events: none;
@@ -296,10 +301,16 @@ text.arc {
 
 .bubbleLabels > text {
   text-transform: uppercase;
+  font-size: 8px;
   font-weight: bold;
   fill: #231f20;
   pointer-events: none;
 }
+
+.expanded .bubbleLabels > text {
+  font-size: 10px;
+}
+
 
 .bubbleCenter, .bubbleCenterHighlight {
   pointer-events: none;

@@ -329,7 +329,7 @@ function arrange() {
   var btn = d3.select('#arrangeBtn').node();
 
   if(displayTop5) {
-    btn.textContent = 'Reinit';
+    btn.textContent = 'Release';
   }
   else {
     btn.textContent = 'Arrange Top 5';
