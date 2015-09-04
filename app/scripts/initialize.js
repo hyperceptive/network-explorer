@@ -1,82 +1,14 @@
 'use strict';
 
-//Constants
-var MAX_ARCS = 5,
-    MAX_BUBBLES = 5,
-    HIDE_LABELS = false,
-    INCLUDE_FOCUS_ENTITY_IN_ARCS = true;
-
-var NODE_TYPE_1 = '#27aae1', //blue
-    NODE_TYPE_2 = '#f57c22', //orange
-    NODE_TYPE_3 = '#05a9a9', //green -- not used
-    NODE_TYPE_4 = '#b48441'; //orange -- not used
-
-var ARC_STROKE = '#231f20',
-    CONNECTOR_STROKE = '#231f20',
-    CHART_LABEL = '#CCC',
-    CALLOUT_BACKGROUND = '#CCC';
-
-var ARC_STROKE_OFF_OPACITY = 0.9,
-    BUBBLE_FILL_ON_OPACITY = 0.8,
-    BUBBLE_FILL_OFF_OPACITY = 0.5,
-    CONNECTOR_ARC_ON_OPACITY = 0.9,
-    CONNECTOR_ARC_OFF_OPACITY = 0.0,
-    CONNECTOR_ON_OPACITY = 0.9,
-    CONNECTOR_OFF_OPACITY = 0.22,
-    CONNECTOR_STROKE_ON_OPACITY = 0.9,
-    CONNECTOR_STROKE_OFF_OPACITY = 0.4;
-
-var TOOLTIP_OPACITY = '0.9';
-
-var DEGREES_90 = 1.57079633;
-
-//Scope variables for data
-var titleMap = {},
-    focusEntity = {},
-    vizName = '',
-    vizType = '',
-    vizLevelByIndex = [],
-    arcs = [],
-    arcsById = {},
-    arcData = [],
-    arcDataById = {},
-    bubbleData = [],
-    bubblesById = {},
-    drilling = false,
-    drillDirection = 'forward',
-    relationships = [],
-    relationshipsByArcId = {},
-    relationshipsByBubbleId = {};
-
-//Scope variables for layout
-var bubbleLayout,
-    chordLayout,
-    diagonal,
-    arcsSvg,
-    bubblesSvg,
-    bubbleLabelsSvg,
-    connectorsSvg;
-
-//Scope variables for size info
-var outerRadius,
-    innerRadius,
-    bubbleRadius,
-    connectorRadius,
-    bubblesTranslateX,
-    bubblesTranslateY,
-    arcsTranslateX,
-    arcsTranslateY;
-
-
-//fish: DOM variables???
-var contentArea = $('#contentAreaTable'); // d3.select(document.getElementById('contentAreaTable'));
-var arcTitle = d3.select(document.getElementById('arcTitle'));
-var bubbleTitle = d3.select(document.getElementById('bubbleTitle'));
+var graph,
+    height,  //TODO: fish: Overall or Chart???
+    width;
 
 
 //Helpers
 var formatNumber = d3.format(',.0f'),
     formatCurrency = function(d) { return '$' + formatNumber(d); };
+
 
 function clipString(label) {
   if(label.length > 25) {
@@ -93,82 +25,7 @@ function logger(message) {
 
 
 
-function createElements() {
-  var svg = d3.select(document.getElementById('svgChartRight'));
-
-  svg.selectAll('*').remove();
-
-  connectorsSvg = svg.append('g').attr('class', 'connectors');
-  arcsSvg = svg.append('g').attr('class', 'arcs');
-  bubblesSvg = svg.append('g').attr('class', 'bubbles');
-  bubbleLabelsSvg = svg.append('g').attr('class', 'bubbleLabels');
-}
-
-
-function setupLayout() {
-  bubbleLayout = d3.layout.pack()
-    .sort('null')
-    .padding(1.5);
-
-  chordLayout = d3.layout.chord()
-    .padding(0.06);
-    //.sortSubgroups(d3.descending)
-    //.sortChords(d3.descending);
-
-  diagonal = d3.svg.diagonal.radial();
-
-  //diagonal = d3.svg.diagonal()
-  //  .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
-}
-
-
-function resize() {
-  var chartWidth = (window.innerWidth / 2) - 18; //divide by 2 if not expanded
-  var chartHeight = window.innerHeight - 98;
-
-  if($('#chartAreaRight').hasClass('expanded')) {
-    chartWidth = window.innerWidth - 28; //1400
-  }
-
-  console.log(chartWidth + ' x ' + chartHeight); //fish
-
-  outerRadius = 250; // chartWidth / 2; //fish: max???
-  innerRadius = outerRadius - 120;
-  bubbleRadius = innerRadius - 50;
-  connectorRadius = innerRadius - 20;
-
-  bubblesTranslateX = (outerRadius - innerRadius) + (innerRadius - bubbleRadius) + 128;
-  bubblesTranslateY = (outerRadius - innerRadius) + (innerRadius - bubbleRadius) + 0;
-  arcsTranslateX = (outerRadius + 128);
-  arcsTranslateY = (outerRadius + 0);
-
-
-  d3.select(document.getElementById('chartAreaRight'))
-    .style('width', chartWidth + 'px');
-
-  d3.select(document.getElementById('svgChartRight'))
-    .style('width', chartWidth + 'px')
-    .style('height', chartHeight + 'px');
-
-  arcsSvg.attr('transform', 'translate(' + arcsTranslateX + ',' + arcsTranslateY + ')');
-  connectorsSvg.attr('transform', 'translate(' + arcsTranslateX + ',' + arcsTranslateY + ')');
-  bubblesSvg.attr('transform', 'translate(' + bubblesTranslateX + ',' + bubblesTranslateY + ')');
-  bubbleLabelsSvg.attr('transform', 'translate(' + bubblesTranslateX + ',' + bubblesTranslateY + ')');
-
-  bubbleLayout.size([bubbleRadius * 2, bubbleRadius * 2]);
-}
-
-
-function initialize() {
-  createElements();
-  setupLayout();
-  resize();
-  buildArcs();
-  buildBubbles();
-  logger('initialize()');
-}
-
-
+//sorting....
 function alphaAsc(a, b) {
   var a1 = a.name;
   var b1 = b.name;
@@ -183,50 +40,29 @@ function alphaAsc(a, b) {
 }
 
 
-function addNavListRow(table, data, color) {
-  var row = $('<tr />');
-  table.append(row);
-  row.append($('<td style="color:' + color + '">' + data + '</td>'));
-}
+function weightDesc(a, b) {
+  var a1 = a.weight;
+  var b1 = b.weight;
 
-function onMouseOverNavList(level) {
-  $('#navListTable').empty();
-
-  var list = vizLevelByIndex[level - 1].list;
-
-  //List is sorted by popularity descending.
-  var tmpList = list.slice();
-  tmpList.sort(alphaAsc);
-
-  tmpList.forEach(function(li) {
-    addNavListRow($('#navListTable'), li.name, '#AAA');
-  });
-}
-
-function onMouseOutNavList() {
-  $('#navListTable').empty();
-}
-
-
-//Do the same for Group list....
-function addGroupListRow(table, level, group, data, color) {
-  var row = $('<tr />');
-  table.append(row);
-  row.append($('<td onMouseOver="onMouseOverGroupList(' + level + ', ' + group + ')" onMouseOut="onMouseOutNavList()" style="color:' + color + '">' + data.name + '</td>'));
-}
-
-function onMouseOverGroupList(level, group) {
-  $('#navListTable').empty();
-
-  var groups = vizLevelByIndex[level].groups;
-
-  if(groups.hasOwnProperty(group)) {
-    //List is sorted by popularity descending.
-    var tmpList = groups[group].list.slice();
-    tmpList.sort(alphaAsc);
-
-    tmpList.forEach(function(li) {
-      addNavListRow($('#navListTable'), li, '#AAA');
-    });
+  if(a1 < b1) {
+    return 1;
   }
+  else if(a1 > b1) {
+    return -1;
+  }
+  return 0;
+}
+
+
+function graphWeightDesc(a, b) {
+  var a1 = graph.getAllEdgesOf(a.name).length;
+  var b1 = graph.getAllEdgesOf(b.name).length;
+
+  if(a1 < b1) {
+    return 1;
+  }
+  else if(a1 > b1) {
+    return -1;
+  }
+  return 0;
 }

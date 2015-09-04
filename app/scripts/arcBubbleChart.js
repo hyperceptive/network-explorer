@@ -1,4 +1,154 @@
+/*
+  Created by Hyperceptive LLC
+*/
+
 'use strict';
+
+//Constants
+var MAX_ARCS = 6,
+    MAX_BUBBLES = 6,
+    HIDE_LABELS = false,
+    INCLUDE_FOCUS_ENTITY_IN_ARCS = true;
+
+var NODE_TYPE_1 = '#27aae1', //blue
+    NODE_TYPE_2 = '#f57c22', //orange
+    NODE_TYPE_3 = '#05a9a9', //green -- not used
+    NODE_TYPE_4 = '#b48441'; //orange -- not used
+
+var ARC_STROKE = '#231f20', // '#f3f3f4',
+    CONNECTOR_STROKE = '#231f20', // '#f3f3f4',
+    CALLOUT_BACKGROUND = '#DDD';
+
+var ARC_STROKE_OFF_OPACITY = 0.9,
+    BUBBLE_FILL_ON_OPACITY = 0.8,
+    BUBBLE_FILL_OFF_OPACITY = 0.5,
+    CONNECTOR_ARC_ON_OPACITY = 0.9,
+    CONNECTOR_ARC_OFF_OPACITY = 0.0,
+    CONNECTOR_ON_OPACITY = 0.9,
+    CONNECTOR_OFF_OPACITY = 0.22,
+    CONNECTOR_STROKE_ON_OPACITY = 0.9,
+    CONNECTOR_STROKE_OFF_OPACITY = 0.4;
+
+var TOOLTIP_OPACITY = '0.9';
+
+var DEGREES_90 = 1.57079633;
+
+//Scope variables for data
+var titleMap = {},
+    arcs = [],
+    arcsById = {},
+    arcData = [],
+    arcDataById = {},
+    bubbleData = [],
+    bubblesById = {},
+    drilling = false,
+    drillDirection = 'forward',
+    relationships = [],
+    relationshipsByArcId = {},
+    relationshipsByBubbleId = {};
+
+//Scope variables for layout
+var bubbleLayout,
+    chordLayout,
+    diagonal,
+    arcsSvg,
+    bubblesSvg,
+    bubbleLabelsSvg,
+    connectorsSvg;
+
+//Scope variables for size info
+var outerRadius,
+    innerRadius,
+    bubbleRadius,
+    connectorRadius,
+    bubblesTranslateX,
+    bubblesTranslateY,
+    arcsTranslateX,
+    arcsTranslateY;
+
+
+//fish: DOM variables???
+var contentArea = $('#contentAreaTable'); // d3.select(document.getElementById('contentAreaTable'));
+
+
+//TODO: fish: Pass both parent and svg elements as params.
+function createElements() {
+  var svg = d3.select(document.getElementById('svgChartRight'));
+
+  svg.selectAll('*').remove();
+
+  connectorsSvg = svg.append('g').attr('class', 'connectors');
+  arcsSvg = svg.append('g').attr('class', 'arcs');
+  bubblesSvg = svg.append('g').attr('class', 'bubbles');
+  bubbleLabelsSvg = svg.append('g').attr('class', 'bubbleLabels');
+}
+
+
+function setupLayout() {
+  bubbleLayout = d3.layout.pack()
+    .sort('null')
+    .padding(1.5);
+
+  chordLayout = d3.layout.chord()
+    .padding(0.06);
+    //.sortSubgroups(d3.descending)
+    //.sortChords(d3.descending);
+
+  diagonal = d3.svg.diagonal.radial();
+
+  //diagonal = d3.svg.diagonal()
+  //  .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
+}
+
+
+function resize() {
+  var chartWidth = (window.innerWidth / 2) - 18; //divide by 2 if not expanded
+  var chartHeight = window.innerHeight - 98;
+
+  if($('#chartAreaRight').hasClass('expanded')) {
+    chartWidth = window.innerWidth - 28; //1400
+  }
+
+  d3.select(document.getElementById('chartAreaRight'))
+    .style('width', chartWidth + 'px');
+
+  d3.select(document.getElementById('svgChartRight'))
+    .style('width', chartWidth + 'px')
+    .style('height', chartHeight + 'px');
+
+
+  outerRadius = (chartWidth > chartHeight ? chartHeight / 2 : chartWidth / 2);
+  innerRadius = outerRadius - 120;
+  bubbleRadius = innerRadius - 50;
+  connectorRadius = innerRadius - 20;
+
+  bubblesTranslateX = (outerRadius - innerRadius) + (innerRadius - bubbleRadius) + 0; //128
+  bubblesTranslateY = (outerRadius - innerRadius) + (innerRadius - bubbleRadius) - 60;
+  arcsTranslateX = (outerRadius + 0); //128
+  arcsTranslateY = (outerRadius - 60);
+
+
+  console.log('arc translate: ' + arcsTranslateX + ', ' + arcsTranslateY);
+  console.log('bubble translate: ' + bubblesTranslateX + ', ' + bubblesTranslateY);
+
+  arcsSvg.attr('transform', 'translate(' + arcsTranslateX + ',' + arcsTranslateY + ')');
+  connectorsSvg.attr('transform', 'translate(' + arcsTranslateX + ',' + arcsTranslateY + ')');
+  bubblesSvg.attr('transform', 'translate(' + bubblesTranslateX + ',' + bubblesTranslateY + ')');
+  bubbleLabelsSvg.attr('transform', 'translate(' + bubblesTranslateX + ',' + bubblesTranslateY + ')');
+
+  bubbleLayout.size([bubbleRadius * 2, bubbleRadius * 2]);
+}
+
+
+function initialize() {
+  createElements();
+  setupLayout();
+  resize();
+  buildArcs();
+  buildBubbles();
+  logger('initialize()');
+}
+
 
 
 function getGroupColor(group) {
@@ -29,28 +179,6 @@ function getGroupColor(group) {
  */
 function updateLabels() {
   console.log('updateLables() ???');
-
-  /* fish:
-  arcTitle.text(vizLevelByIndex[0].name);
-  bubbleTitle.text(vizLevelByIndex[1].name);
-
-  //Display groups
-  $('#arcListTable').empty();
-
-  for(var key in vizLevelByIndex[0].groups) {
-    if(vizLevelByIndex[0].groups.hasOwnProperty(key)) {
-      addGroupListRow($('#arcListTable'), 0, key, vizLevelByIndex[0].groups[key], getGroupColor(key));
-    }
-  }
-
-  $('#bubbleListTable').empty();
-
-  for(key in vizLevelByIndex[1].groups) {
-    if(vizLevelByIndex[1].groups.hasOwnProperty(key)) {
-      addGroupListRow($('#bubbleListTable'), 1, key, vizLevelByIndex[1].groups[key], getGroupColor(key));
-    }
-  }
-  */
 
 }
 
@@ -266,7 +394,7 @@ function updateArcs() {
     })
     */
     .text(function(d) { return d.label; })
-    .call(wrap, 200)
+    .call(wrap, 220)
     .attr('id', function (d) { return 't_' + d.id; });
 
   arcGroup.exit().remove();
@@ -399,7 +527,7 @@ function updateBubbleLabels() {
       .style('font-size', function(d) {
         //console.log('Font Size: ' + Math.min(1, Math.max(0.5, d.r * 2 / bubbleRadius)) * 18 + 'px'); //fish
         //return Math.min(1, Math.max(0.5, d.r * 2 / bubbleRadius)) * 18 + 'px';
-        return '12px';
+        return '10px'; //was 12px
       })
       .attr('dy', function (d, i) {
         //Change yOffset based on height.
@@ -580,11 +708,6 @@ function updateConnectors(connectors) {
 
 function onMouseOver(d, type) {
   if(drilling) { return; }
-
-  if(autoSelected) {
-    onMouseOut(autoSelected, 'bubble');
-    autoSelected = null;
-  }
 
   var arcHideList = [];
   var bubbleHideList = [];
@@ -821,10 +944,7 @@ function onMouseClick(d, type) {
       .ease('exp-in')  //cubic, elastic, bounce, linear
       .attr('r', function(f) { return innerRadius; })
       .each('end', function() {
-        //fish: focusEntity = graph.getNode(d.id);
-        focusEntity = d;
-        console.log(focusEntity); //fish: yo
-        updateConnectionExplorer();
+        updateConnectionExplorer(d, drillDirection);
         drilling = false;
       });
   }
@@ -852,14 +972,10 @@ function onMouseClick(d, type) {
       .ease('exp-in')
       .call(arcFall, this)
       .each('end', function() {
-        //fish: remove all arcs and connectors when drilling to same node type.
+        //remove all arcs and connectors when drilling to same node type.
         arcsSvg.selectAll('g.arcs').remove();
         connectorsSvg.selectAll('g.connectors').remove();
-
-        //fish: focusEntity = graph.getNode(arcId);
-        focusEntity = d;  //fish: wont' for for text...
-
-        updateConnectionExplorer();
+        updateConnectionExplorer(arcDataById[arcId], drillDirection);
         drilling = false;
       });
   }
@@ -932,29 +1048,3 @@ function updateMaxBubbles(value) {
 }
 
 
-var autoSelected;
-
-function highlightMostRelevant() {
-  setTimeout(function() {
-    var highlightThisOne;
-
-    for(var key in bubblesById) {
-      if(bubblesById.hasOwnProperty(key)) {
-        if(highlightThisOne) {
-          if(highlightThisOne.value < bubblesById[key].value) {
-            highlightThisOne = bubblesById[key];
-          }
-        }
-        else {
-          highlightThisOne = bubblesById[key];
-        }
-      }
-    }
-
-    if(highlightThisOne) {
-      onMouseOver(highlightThisOne, 'bubble');
-      autoSelected = highlightThisOne;
-    }
-
-  }, 1000);
-}

@@ -1,6 +1,7 @@
 'use strict';
 
 
+//TODO: fish: pass in group id's.
 function buildGraph(connections) {
   //Build the graph structure
   graph = new Graph();
@@ -95,34 +96,7 @@ function addRelationship(map, id, relationship) {
 
 
 
-function weightDesc(a, b) {
-  var a1 = a.weight;
-  var b1 = b.weight;
-
-  if(a1 < b1) {
-    return 1;
-  }
-  else if(a1 > b1) {
-    return -1;
-  }
-  return 0;
-}
-
-function popularityDesc(a, b) {
-  var a1 = a.popularity;
-  var b1 = b.popularity;
-
-  if(a1 < b1) {
-    return 1;
-  }
-  else if(a1 > b1) {
-    return -1;
-  }
-  return 0;
-}
-
-
-function updateChartData() {
+function updateChartData(focusEntity, direction) {
   arcData = [];
   arcDataById = {};
   bubbleData = [];
@@ -133,6 +107,10 @@ function updateChartData() {
 
   var arcId = 'fromId',
       bubbleId = 'toId';
+
+  //TODO: fish: Handle drilling backwards (from arcs to bubbles).
+  console.log(focusEntity); //fish
+  console.log(direction); //fish
 
   if(focusEntity.group === 2) {
     arcId = 'toId';
@@ -246,4 +224,3 @@ function updateChartData() {
   });
 
 }
-

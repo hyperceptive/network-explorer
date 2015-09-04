@@ -281,7 +281,7 @@ h2 small {
 }
 
 text.arc {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   letter-spacing: 1px;
 }
@@ -297,7 +297,7 @@ text.arc {
 .bubbleLabels > text {
   text-transform: uppercase;
   font-weight: bold;
-  fill: #0e2741;
+  fill: #231f20;
   pointer-events: none;
 }
 

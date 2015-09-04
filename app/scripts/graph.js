@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Graph Data Structure with d3 extensions.
  *
@@ -9,6 +7,7 @@
  *
  */
 
+'use strict';
 
 var Graph,
     hasProp = {}.hasOwnProperty;
