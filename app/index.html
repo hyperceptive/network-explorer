@@ -40,6 +40,23 @@
       <section id="chartAreaRight" class="chartArea">
         <button class="expandCollapseBtn" onclick="expandCollapse('Right')"></button>
         <svg id="svgChartRight"></svg>
+
+        <div class="slider-panel">
+          <div>
+            <div class="slider-text">Max Arcs
+              <output id="maxArcs" style="text-align:right; margin-left:68px">5</output>
+            </div>
+            <input type="range" min="1" max="20" value="5" step="1" onchange="maxArcs.value=value; updateMaxArcs(value);" oninput="maxArcs.value=value" />
+          </div>
+
+          <div>
+            <div class="slider-text">Max Cirlces
+              <output id="maxCircles" style="text-align:right; margin-left:56px">5</output>
+            </div>
+            <input type="range" min="1" max="20" value="5" step="1" onchange="maxCircles.value=value; updateMaxBubbles(value);" oninput="maxCircles.value=value" />
+          </div>
+        </div>
+
       </section>
     </div>
 

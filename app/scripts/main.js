@@ -80,8 +80,13 @@ function openConnectionExplorer() {
 
 
 
+var currentFocusNode, currentType;
+
 function initConnectionExplorer() {
-  updateChartData(selectedNode, 'arc');
+  currentFocusNode = selectedNode;
+  currentType = 'arc';
+
+  updateChartData(currentFocusNode, currentType);
 
   initialize();
 
@@ -93,7 +98,15 @@ function initConnectionExplorer() {
 
 
 function updateConnectionExplorer(focusEntity, type) {
-  updateChartData(focusEntity, type);
+  if(typeof focusEntity !== 'undefined') {
+    currentFocusNode = focusEntity;
+  }
+
+  if(typeof type !== 'undefined') {
+    currentType = type;
+  }
+
+  updateChartData(currentFocusNode, currentType);
 
   resize();
   buildArcs();
@@ -104,6 +117,22 @@ function updateConnectionExplorer(focusEntity, type) {
   updateBubbles();
   updateBubbleLabels();
 }
+
+
+
+function updateMaxArcs(value) {
+  MAX_ARCS = value;
+  createElements();
+  updateConnectionExplorer();
+}
+
+function updateMaxBubbles(value) {
+  MAX_BUBBLES = value;
+  createElements();
+  updateConnectionExplorer();
+}
+
+
 
 
 

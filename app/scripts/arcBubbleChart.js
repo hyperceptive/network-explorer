@@ -230,7 +230,6 @@ function buildArcs() {
     }
 
     row[indexByName[d.name]] = Number(d.value);
-    console.log(d.value);
   });
 
   //Set the data for the chord layout
@@ -1037,19 +1036,4 @@ function updateContentArea(d, type) {
 function clearContentArea() {
   contentArea.attr('class', 'fadeHidden');
 }
-
-
-
-function updateMaxArcs(value) {
-  MAX_ARCS = value;
-  createElements();
-  updateConnectionExplorer(); //fishy
-}
-
-function updateMaxBubbles(value) {
-  MAX_BUBBLES = value;
-  createElements();
-  updateConnectionExplorer(); //fishy
-}
-
 
