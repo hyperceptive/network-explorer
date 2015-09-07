@@ -230,6 +230,7 @@ function buildArcs() {
     }
 
     row[indexByName[d.name]] = Number(d.value);
+    console.log(d.value);
   });
 
   //Set the data for the chord layout
@@ -948,7 +949,7 @@ function onMouseClick(d, type) {
       .ease('exp-in')  //cubic, elastic, bounce, linear
       .attr('r', function(f) { return innerRadius; })
       .each('end', function() {
-        updateConnectionExplorer(d, drillDirection);
+        updateConnectionExplorer(d, 'arc'); //bubble becomes an arc
         drilling = false;
       });
   }
@@ -979,7 +980,7 @@ function onMouseClick(d, type) {
         //remove all arcs and connectors when drilling to same node type.
         arcsSvg.selectAll('g.arcs').remove();
         connectorsSvg.selectAll('g.connectors').remove();
-        updateConnectionExplorer(arcDataById[arcId], drillDirection);
+        updateConnectionExplorer(arcDataById[arcId], 'bubble'); //arc becomes a bubble
         drilling = false;
       });
   }
@@ -1042,13 +1043,13 @@ function clearContentArea() {
 function updateMaxArcs(value) {
   MAX_ARCS = value;
   createElements();
-  updateConnectionExplorer();
+  updateConnectionExplorer(); //fishy
 }
 
 function updateMaxBubbles(value) {
   MAX_BUBBLES = value;
   createElements();
-  updateConnectionExplorer();
+  updateConnectionExplorer(); //fishy
 }
 
 

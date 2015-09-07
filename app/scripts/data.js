@@ -96,7 +96,7 @@ function addRelationship(map, id, relationship) {
 
 
 
-function updateChartData(focusEntity, direction) {
+function updateChartData(focusEntity, type) {
   arcData = [];
   arcDataById = {};
   bubbleData = [];
@@ -105,12 +105,33 @@ function updateChartData(focusEntity, direction) {
   relationshipsByArcId = {};
   relationshipsByBubbleId = {};
 
+  //Handle drilling both ways (from arcs or bubbles).
+  if(type === 'arc') {
+    buildByArc(focusEntity);
+  }
+  else {
+    buildByBubble(focusEntity);
+  }
+
+  //Remove unconnected Arcs and Bubbles.
+  for(var i = arcData.length - 1; i >= 0; i--) {
+    if(!relationshipsByArcId.hasOwnProperty(arcData[i].id)) {
+      arcData.splice(i, 1);
+    }
+  }
+
+  for(var j = bubbleData.length - 1; j >= 0; j--) {
+    if(!relationshipsByBubbleId.hasOwnProperty(bubbleData[j].id)) {
+      bubbleData.splice(j, 1);
+    }
+  }
+
+}
+
+
+function buildByArc(focusEntity) {
   var arcId = 'fromId',
       bubbleId = 'toId';
-
-  //TODO: fish: Handle drilling backwards (from arcs to bubbles).
-  console.log(focusEntity); //fish
-  console.log(direction); //fish
 
   if(focusEntity.group === 2) {
     arcId = 'toId';
@@ -223,17 +244,119 @@ function updateChartData(focusEntity, direction) {
     });
   });
 
-  //Remove unconnected Arcs and Bubbles.
-  for(var i = arcData.length - 1; i >= 0; i--) {
-    if(!relationshipsByArcId.hasOwnProperty(arcData[i].id)) {
-      arcData.splice(i, 1);
-    }
+}
+
+
+
+function buildByBubble(focusEntity) {
+  var arcId = 'toId',
+      bubbleId = 'fromId';
+
+  if(focusEntity.group === 2) {
+    arcId = 'fromId';
+    bubbleId = 'toId';
   }
 
-  for(var j = bubbleData.length - 1; j >= 0; j--) {
-    if(!relationshipsByBubbleId.hasOwnProperty(bubbleData[j].id)) {
-      bubbleData.splice(j, 1);
-    }
-  }
+  //Get Arcs for input entity
+  var tmpArcs = [];
+  var tmpArcEdges = graph.getAllEdgesOf(focusEntity.name);
+  tmpArcEdges.sort(weightDesc);
+  tmpArcEdges.forEach(function(arcEdge) {
+    tmpArcs.push(graph.getNode(arcEdge[arcId]));
+  });
+
+  var arcCount = 0;
+  var bubbleCount = 0;
+
+  //Loop over the arcs and calculate the bubbles.
+  tmpArcs.forEach(function(arc) {
+    var arcAdded = false;
+    var arcObj = {
+      id: arc.id,
+      name: arc.id,
+      group: arc.group,
+      value: 0
+    };
+
+    //Get possible Bubbles for the current Arc.
+    var tmpBubbles = [];
+    var tmpBubbleEdges = graph.getAllEdgesOf(arc.id);
+    tmpBubbleEdges.sort(weightDesc);
+    tmpBubbleEdges.forEach(function(bubbleEdge) {
+      tmpBubbles.push(graph.getNode(bubbleEdge[bubbleId]));
+    });
+
+    tmpBubbles.forEach(function(bubble) {
+      if(INCLUDE_FOCUS_ENTITY_IN_ARCS || focusEntity.name !== bubble.id) {
+        var edge;
+
+        //If group 1 will be the bubble.
+        if(focusEntity.group === 1) {
+          edge = graph.getEdge(bubble.id, arc.id)
+        }
+        else if(focusEntity.group === 2) {
+          edge = graph.getEdge(arc.id, bubble.id);
+        }
+
+        if(typeof edge !== 'undefined') {
+          if(!arcAdded && arcCount < MAX_ARCS) {
+            arcData.push(arcObj);
+            arcDataById[arcObj.id] = arcObj;
+            arcAdded = true;
+            arcCount++;
+          }
+
+          var weight = graph.getAllEdgesOf(bubble.id).length;
+
+          var bubbleObj = {
+            id: bubble.id,
+            name: bubble.id,
+            group: bubble.group,
+            value: weight
+          };
+
+          if(bubblesById[bubble.id]) {
+            if(arcDataById[arcObj.id]) {
+              arcDataById[arcObj.id].value++; //just count number of connections
+            }
+          }
+          else {
+            if(bubbleCount < MAX_BUBBLES || (INCLUDE_FOCUS_ENTITY_IN_ARCS && focusEntity.name === bubble.id)) {
+              bubbleCount++;
+              bubbleData.push(bubbleObj);
+              bubblesById[bubbleObj.id] = bubbleObj;
+              arcDataById[arcObj.id].value++; //just count number of connections
+            }
+          }
+        }
+      }
+    });
+  });
+
+  arcData.forEach(function(a) {
+    bubbleData.forEach(function(b) {
+      var edge;
+
+      if(focusEntity.group === 1) {
+        edge = graph.getEdge(b.id, a.id)
+      }
+      else if(focusEntity.group === 2) {
+        edge = graph.getEdge(a.id, b.id);
+      }
+
+      if(typeof edge !== 'undefined') {
+        //Add relationships between arcs and bubbles
+        var relationship = {
+          id: a.id + '_' + b.id,
+          arcId: a.id,
+          bubbleId: b.id
+        };
+
+        relationships.push(relationship);
+        addRelationship(relationshipsByArcId, relationship.arcId, relationship);
+        addRelationship(relationshipsByBubbleId, relationship.bubbleId, relationship);
+      }
+    });
+  });
 
 }

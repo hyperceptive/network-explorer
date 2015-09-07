@@ -81,7 +81,7 @@ function openConnectionExplorer() {
 
 
 function initConnectionExplorer() {
-  updateChartData(selectedNode, 'forward');
+  updateChartData(selectedNode, 'arc');
 
   initialize();
 
@@ -92,8 +92,8 @@ function initConnectionExplorer() {
 }
 
 
-function updateConnectionExplorer(focusEntity, direction) {
-  updateChartData(focusEntity, direction);
+function updateConnectionExplorer(focusEntity, type) {
+  updateChartData(focusEntity, type);
 
   resize();
   buildArcs();
