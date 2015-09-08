@@ -34,7 +34,7 @@ var TOOLTIP_OPACITY = '0.9';
 var DEGREES_90 = 1.57079633;
 
 //Scope variables for data
-var titleMap = {},
+var contentMap = {},
     arcs = [],
     arcsById = {},
     arcData = [],
@@ -67,7 +67,7 @@ var outerRadius,
     arcsTranslateY;
 
 
-//fish: DOM variables???
+
 var contentArea = $('#contentAreaTable'); // d3.select(document.getElementById('contentAreaTable'));
 
 
@@ -988,7 +988,12 @@ function onMouseClick(d, type) {
 
 var currentTable;
 
+//fish
 function addContentRow(table, data) {
+
+  console.log('addContentRow:'); //fish
+  console.log(data); //fish
+
   //Only add if not already there.
   if(currentTable.indexOf(data) === -1) {
     currentTable.push(data);
@@ -996,6 +1001,20 @@ function addContentRow(table, data) {
     var row = $('<tr />');
     table.append(row);
     row.append($('<td>' + data + '</td>'));
+
+    /* fish
+    var d1 = new Date(data.Date);
+    var month = (d1.getMonth() + 1).toString();
+    var day = d1.getDate().toString();
+    var d2 = d1.getFullYear() + '-' + (month.length === 1 ? '0' + month : month) + '-' + (day.length === 1 ? '0' + day : day);
+
+    row.append($('<td>' + d2 + '</td>'));
+    row.append($('<td>' + data.LobbyingSubjectArea + '</td>'));
+    row.append($('<td>' + data.MunicipalDecision + '</td>'));
+    row.append($('<td>' + data.DesiredOutcome + '</td>'));
+    row.append($('<td>' + data.Lobbyist_Client + '</td>'));
+    row.append($('<td>' + data.Official + '</td>'));
+    */
   }
 }
 
@@ -1003,19 +1022,23 @@ function updateContentArea(d, type) {
   contentArea.empty();
   currentTable = [];
 
+  var fish = 0;
+
   if(type === 'bubble') {
     d.relatedConnectors.forEach(function(connector) {
-      if(titleMap[connector.id]) {
-        titleMap[connector.id].forEach(function(title) {
-          addContentRow(contentArea, title);
+      if(contentMap[connector.id]) {
+        contentMap[connector.id].forEach(function(content) {
+          console.log('adding content row: ' + fish++); //fish
+          addContentRow(contentArea, content);
         });
       }
     });
   }
   else if(type === 'connector') {
-    if(titleMap[d.id]) {
-      titleMap[d.id].forEach(function(title) {
-        addContentRow(contentArea, title);
+    if(contentMap[d.id]) {
+      contentMap[d.id].forEach(function(content) {
+        console.log('adding content row: ' + fish++); //fish
+        addContentRow(contentArea, content);
       });
     }
   }
@@ -1023,9 +1046,12 @@ function updateContentArea(d, type) {
     var relatedConnectors = arcsById[d.id].relatedConnectors;
 
     relatedConnectors.forEach(function(connector) {
-      titleMap[connector.id].forEach(function(title) {
-        addContentRow(contentArea, title);
-      });
+      if(contentMap[connector.id]) {
+        contentMap[connector.id].forEach(function(content) {
+          console.log('adding content row: ' + fish++); //fish
+          addContentRow(contentArea, content);
+        });
+      }
     });
   }
 

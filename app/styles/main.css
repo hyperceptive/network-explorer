@@ -272,7 +272,6 @@ h2 small {
   line-height: 13px;
 }
 
-
 .slider-panel {
   position: absolute;
   bottom: 0;
@@ -283,6 +282,34 @@ h2 small {
   font-size: 11px;
   color: #231f20;
 }
+
+
+#contentAreaTable {
+  position: absolute;
+  bottom: 0;
+  /*border-left: 1px solid #a5a3a3;*/
+  /*width: 800px;*/
+  padding-left: 0px;
+  color: #231f20;
+  font-size: 8px;
+  font-style: italic;
+  letter-spacing: 1px;
+  /*line-height: 24px;*/
+  /*text-align: center;*/
+}
+
+/*
+#contentAreaTable tr td {
+  border-top: 1px solid #484f57;
+  padding: 8px 0;
+}
+
+#contentAreaTable tr:nth-child(1) td {
+  border-top: none;
+}
+*/
+
+
 
 /************************************************************************************
  CHART INTERNALS
@@ -333,3 +360,20 @@ text.arc {
 }
 
 
+
+/************************************************************************************
+ EFFECTS
+*************************************************************************************/
+
+/* Simple fade in / out */
+.fadeVisible {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 1s linear;
+}
+
+.fadeHidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 2s, opacity 2s linear;
+}

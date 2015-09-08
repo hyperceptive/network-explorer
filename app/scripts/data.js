@@ -3,6 +3,8 @@
 
 //TODO: fish: pass in group id's.
 function buildGraph(connections) {
+  contentMap = {};
+
   //Build the graph structure
   graph = new Graph();
 
@@ -19,15 +21,16 @@ function buildGraph(connections) {
   // -- Official_Department
   var group2 = 'Official_Department';
 
-
   //Add Nodes
   connections.data.forEach(function(nodeSets) {
-
     //Convert from array into object.
     var obj = nodeSets.reduce(function(o, v, i) {
       o[columns[i].name] = v;
       return o;
     }, {});
+
+    addToContentMap(obj, obj[group1], obj[group2]);
+    addToContentMap(obj, obj[group2], obj[group1]); //add both ways.
 
     var n1 = graph.addNode(obj[group1]);
 
@@ -46,7 +49,6 @@ function buildGraph(connections) {
 
   //Add Edges
   connections.data.forEach(function(lobbyistsContact) {
-
     //Convert from array into object.
     var edgeObj = lobbyistsContact.reduce(function(o, v, i) {
       o[columns[i].name] = v;
@@ -69,22 +71,21 @@ function buildGraph(connections) {
   });
 }
 
-/*
-function buildTitleMap(titles) {
-  titleMap = {};
 
-  titles.forEach(function(title) {
-    var key = title.sourceCode + '_' + title.targetCode;
-    if(!titleMap.hasOwnProperty(key)) {
-      titleMap[key] = [];
-    }
+function addToContentMap(obj, group1Id, group2Id) {
+  var key = group1Id + '_' + group2Id;
 
-    if(title.title && title.title !== '') {
-      titleMap[key].push(title.title);
-    }
-  });
+  if(!contentMap.hasOwnProperty(key)) {
+    contentMap[key] = [];
+  }
+
+  var data = obj.LobbyingSubjectArea + ': ' + obj.MunicipalDecision;
+
+  if(contentMap[key].indexOf(data) === -1) {
+    contentMap[key].push(data);
+  }
 }
-*/
+
 
 
 function addRelationship(map, id, relationship) {
@@ -146,7 +147,7 @@ function buildByArc(focusEntity) {
     tmpBubbles.push(graph.getNode(bubbleEdge[bubbleId]));
   });
 
-  //fish: tmpBubbles.sort(popularityDesc);
+  //fish: tmpBubbles.sort(popularityDesc);  //Sory by some kind of popularity or relevance or interest.
 
   var arcCount = 0;
   var bubbleCount = 0;
