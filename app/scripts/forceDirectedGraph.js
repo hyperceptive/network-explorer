@@ -18,13 +18,13 @@ function buildForceDirectedGraph(height, width, svgId, data) {
   force = d3.layout.force()
       .size([width, height])
       .linkDistance(width/10)
-      //.linkStrength(function(d) {
-      //  return 0.3;
-      //})
+      .linkStrength(function(d) {
+        return 0.3;
+      })
       .gravity(0.15) //0.2
-      .charge(-100) //-300
-      //.alpha(0.1)
+      .charge(-width/10) //-100, -300
       //.chargeDistance(240)
+      //.alpha(0.1)
       ;
 
   drag = force.drag()
@@ -93,7 +93,7 @@ function buildForceDirectedGraph(height, width, svgId, data) {
       .attr('class', 'node')
       .on('dblclick', dblclick)
       .on('mouseover', function (d) { onMouseOver(d); })
-      .on('mouseout', function (d) { onMouseOut(); })
+      .on('mouseout', function (d) { onMouseOut(d); })
       .on('contextmenu', function(d, i) { contextMenu(d, i); })
       .call(drag);
 
@@ -167,30 +167,87 @@ function buildForceDirectedGraph(height, width, svgId, data) {
   });
 
   function connected(a, b) {
-    return linkedByIndex[a.index + ',' + b.index];
+    return linkedByIndex[a.index + ',' + b.index] || linkedByIndex[b.index + ',' + a.index];
   }
 
   //Highlight by reducing opacity of non-connected nodes
   function onMouseOver(d) {
+    node.attr('class', function(o) {
+      var fadeClass = 'fadePartialOutOpacity';
+
+      if(connected(d, o)) {
+        fadeClass = 'fadeInOpacity';
+      }
+
+      return d3.select(this).attr("class") + ' ' + fadeClass;
+    });
+
+    label.attr('class', function(o) {
+      var fadeClass = 'fadeOutOpacity';
+
+      if(d.name === o.name || (typeof o.fixed !== 'undefined' && o.fixed)) {
+        fadeClass = 'fadeInOpacity';
+      }
+      else if(connected(d, o)) {
+        fadeClass = 'fadeInPartially';
+      }
+
+      return d3.select(this).attr("class") + ' ' + fadeClass;
+    });
+
+    link.attr('class', function(o) {
+      var fadeClass = 'fadePartialOutOpacity';
+
+      if(d.index === o.source.index || d.index === o.target.index) {
+        fadeClass = 'fadeInOpacity';
+      }
+
+      return d3.select(this).attr("class") + ' ' + fadeClass;
+    });
+
+
+    /* original
     node.style('opacity', function (o) {
-      return connected(d, o) | connected(o, d) ? 1 : 0.1;
+      return connected(d, o) ? 1 : 0.1;
     });
 
     label.style('opacity', function (o) {
       if(d.name === o.name) {
         return 1;
       }
-      //return connected(d, o) | connected(o, d) ? 0.7 : 0;
+      //return connected(d, o) ? 0.7 : 0;
       return 0;
     });
 
     link.style('opacity', function (o) {
       return d.index === o.source.index | d.index === o.target.index ? 1 : 0.1;
     });
+    */
   }
 
   //Remove highlight
-  function onMouseOut() {
+  function onMouseOut(d) {
+    node.classed('fadeInOpacity', true);
+    node.classed('fadePartialOutOpacity', false);
+
+    label.classed('fadeInOpacity', false);
+    label.classed('fadeInPartially', false);
+    label.classed('fadeOutOpacity', false);
+
+    label.attr('class', function(o) {
+      var fadeClass = '';
+
+      if(d.name === o.name && typeof d.fixed !== 'undefined' && d.fixed) {
+        fadeClass = 'fadeInOpacity';
+      }
+
+      return d3.select(this).attr("class") + ' ' + fadeClass;
+    });
+
+    link.classed('fadeInOpacity', true);
+    link.classed('fadePartialOutOpacity', false);
+
+    /* original
     node.style('opacity', 1);
     link.style('opacity', 1);
 
@@ -200,6 +257,7 @@ function buildForceDirectedGraph(height, width, svgId, data) {
       }
       return 0.0;
     });
+    */
   }
 
 

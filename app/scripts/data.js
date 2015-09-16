@@ -79,7 +79,7 @@ function addToContentMap(obj, group1Id, group2Id) {
     contentMap[key] = [];
   }
 
-  var data = obj.LobbyingSubjectArea + ': ' + obj.MunicipalDecision;
+  var data = obj.LobbyingSubjectArea + ': ' + obj.MunicipalDecision; //fish: how to define this?
 
   if(contentMap[key].indexOf(data) === -1) {
     contentMap[key].push(data);

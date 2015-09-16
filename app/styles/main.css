@@ -377,3 +377,26 @@ text.arc {
   opacity: 0;
   transition: visibility 0s 2s, opacity 2s linear;
 }
+
+
+
+.fadeInOpacity {
+  opacity: 1;
+  transition: opacity 0.8s linear;
+}
+
+.fadeInPartially {
+  opacity: 0.8;
+  transition: opacity 0.8s linear;
+}
+
+.fadePartialOutOpacity {
+  opacity: 0.1;
+  transition: opacity 0.8s linear;
+}
+
+.fadeOutOpacity {
+  opacity: 0;
+  transition: opacity 0.8s linear;
+}
+
