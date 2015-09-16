@@ -986,50 +986,51 @@ function onMouseClick(d, type) {
 }
 
 
-var currentTable;
+var contentTable;
 
-//fish
-function addContentRow(table, data) {
-
-  console.log('addContentRow:'); //fish
-  console.log(data); //fish
-
+function addRowToContentTable(data) {
   //Only add if not already there.
-  if(currentTable.indexOf(data) === -1) {
-    currentTable.push(data);
-
-    var row = $('<tr />');
-    table.append(row);
-    row.append($('<td>' + data + '</td>'));
-
-    /* fish
-    var d1 = new Date(data.Date);
-    var month = (d1.getMonth() + 1).toString();
-    var day = d1.getDate().toString();
-    var d2 = d1.getFullYear() + '-' + (month.length === 1 ? '0' + month : month) + '-' + (day.length === 1 ? '0' + day : day);
-
-    row.append($('<td>' + d2 + '</td>'));
-    row.append($('<td>' + data.LobbyingSubjectArea + '</td>'));
-    row.append($('<td>' + data.MunicipalDecision + '</td>'));
-    row.append($('<td>' + data.DesiredOutcome + '</td>'));
-    row.append($('<td>' + data.Lobbyist_Client + '</td>'));
-    row.append($('<td>' + data.Official + '</td>'));
-    */
+  if(contentTable.indexOf(data) === -1) {
+    contentTable.push(data);
   }
 }
 
+function buildContentTable(table) {
+  contentTable.sort();
+
+  var row;
+
+  for(var i=0; i < contentTable.length; i++) {
+    row = $('<tr />');
+    table.append(row);
+    row.append($('<td>' + contentTable[i] + '</td>'));
+  }
+
+  /* fish
+  var d1 = new Date(data.Date);
+  var month = (d1.getMonth() + 1).toString();
+  var day = d1.getDate().toString();
+  var d2 = d1.getFullYear() + '-' + (month.length === 1 ? '0' + month : month) + '-' + (day.length === 1 ? '0' + day : day);
+
+  row.append($('<td>' + d2 + '</td>'));
+  row.append($('<td>' + data.LobbyingSubjectArea + '</td>'));
+  row.append($('<td>' + data.MunicipalDecision + '</td>'));
+  row.append($('<td>' + data.DesiredOutcome + '</td>'));
+  row.append($('<td>' + data.Lobbyist_Client + '</td>'));
+  row.append($('<td>' + data.Official + '</td>'));
+  */
+}
+
+
 function updateContentArea(d, type) {
   contentArea.empty();
-  currentTable = [];
-
-  var fish = 0;
+  contentTable = [];
 
   if(type === 'bubble') {
     d.relatedConnectors.forEach(function(connector) {
       if(contentMap[connector.id]) {
         contentMap[connector.id].forEach(function(content) {
-          console.log('adding content row: ' + fish++); //fish
-          addContentRow(contentArea, content);
+          addRowToContentTable(content);
         });
       }
     });
@@ -1037,8 +1038,7 @@ function updateContentArea(d, type) {
   else if(type === 'connector') {
     if(contentMap[d.id]) {
       contentMap[d.id].forEach(function(content) {
-        console.log('adding content row: ' + fish++); //fish
-        addContentRow(contentArea, content);
+        addRowToContentTable(content);
       });
     }
   }
@@ -1048,13 +1048,13 @@ function updateContentArea(d, type) {
     relatedConnectors.forEach(function(connector) {
       if(contentMap[connector.id]) {
         contentMap[connector.id].forEach(function(content) {
-          console.log('adding content row: ' + fish++); //fish
-          addContentRow(contentArea, content);
+          addRowToContentTable(content);
         });
       }
     });
   }
 
+  buildContentTable(contentArea);
   contentArea.attr('class', 'fadeVisible');
 }
 

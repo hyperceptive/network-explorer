@@ -287,27 +287,13 @@ h2 small {
 #contentAreaTable {
   position: absolute;
   bottom: 0;
-  /*border-left: 1px solid #a5a3a3;*/
-  /*width: 800px;*/
   padding-left: 0px;
   color: #231f20;
-  font-size: 8px;
+  font-size: 10px;
   font-style: italic;
   letter-spacing: 1px;
-  /*line-height: 24px;*/
-  /*text-align: center;*/
+  pointer-events: none;
 }
-
-/*
-#contentAreaTable tr td {
-  border-top: 1px solid #484f57;
-  padding: 8px 0;
-}
-
-#contentAreaTable tr:nth-child(1) td {
-  border-top: none;
-}
-*/
 
 
 

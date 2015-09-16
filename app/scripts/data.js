@@ -1,5 +1,7 @@
 'use strict';
 
+var START_YEAR = 2014;
+
 
 //TODO: fish: pass in group id's.
 function buildGraph(connections) {
@@ -29,21 +31,23 @@ function buildGraph(connections) {
       return o;
     }, {});
 
-    addToContentMap(obj, obj[group1], obj[group2]);
-    addToContentMap(obj, obj[group2], obj[group1]); //add both ways.
+    if(parseInt(obj.Date.substr(0, 4)) >= START_YEAR) {
+      addToContentMap(obj, obj[group1], obj[group2]);
+      addToContentMap(obj, obj[group2], obj[group1]); //add both ways.
 
-    var n1 = graph.addNode(obj[group1]);
+      var n1 = graph.addNode(obj[group1]);
 
-    if(typeof n1 !== 'undefined') {
-      n1.id = obj[group1];
-      n1.group = 1;
-    }
+      if(typeof n1 !== 'undefined') {
+        n1.id = obj[group1];
+        n1.group = 1;
+      }
 
-    var n2 = graph.addNode(obj[group2]);
+      var n2 = graph.addNode(obj[group2]);
 
-    if(typeof n2 !== 'undefined') {
-      n2.id = obj[group2];
-      n2.group = 2;
+      if(typeof n2 !== 'undefined') {
+        n2.id = obj[group2];
+        n2.group = 2;
+      }
     }
   });
 
@@ -55,20 +59,34 @@ function buildGraph(connections) {
       return o;
     }, {});
 
-    var fromId = edgeObj[group1];
-    var toId = edgeObj[group2];
-    var edge = graph.getEdge(fromId, toId);
+    if(parseInt(edgeObj.Date.substr(0, 4)) >= START_YEAR) {
+      var fromId = edgeObj[group1];
+      var toId = edgeObj[group2];
+      var edge = graph.getEdge(fromId, toId);
 
-    if(edge) {
-      edge.weight++;
-      edge.weightList.push(edgeObj);
-    }
-    else {
-      var newEdge = graph.addEdge(fromId, toId);
-      newEdge.weightList = [];
-      newEdge.weightList.push(edgeObj);
+      if(edge) {
+        edge.weight++;
+        edge.weightList.push(edgeObj);
+      }
+      else {
+        var newEdge = graph.addEdge(fromId, toId);
+        newEdge.weightList = [];
+        newEdge.weightList.push(edgeObj);
+      }
     }
   });
+
+  //fish: Remove nodes with only a single connection...
+  /*
+  graph.forEachNode(function(nodeObject, nodeId) {
+    if(graph.getAllEdgesOf(nodeId).length === 1) {
+      console.log(graph.getAllEdgesOf(nodeId).length);
+      graph.removeNode(nodeId);
+    }
+  });
+  */
+
+
 }
 
 
