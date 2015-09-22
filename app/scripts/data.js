@@ -2,6 +2,17 @@
 
 var START_YEAR = 2014;
 
+//Group1
+// -- Lobbyist
+// -- Lobbyist Firm
+// -- Lobbyist Client
+var GROUP1 = 'Lobbyist_Firm';
+
+//Group2
+// -- Official
+// -- Official_Department
+var GROUP2 = 'Official_Department';
+
 
 //TODO: fish: pass in group id's.
 function buildGraph(connections) {
@@ -12,17 +23,6 @@ function buildGraph(connections) {
 
   var columns = connections.meta.view.columns;
 
-  //Group1
-  // -- Lobbyist
-  // -- Lobbyist Firm
-  // -- Lobbyist Client
-  var group1 = 'Lobbyist_Firm';
-
-  //Group2
-  // -- Official
-  // -- Official_Department
-  var group2 = 'Official_Department';
-
   //Add Nodes
   connections.data.forEach(function(nodeSets) {
     //Convert from array into object.
@@ -32,20 +32,20 @@ function buildGraph(connections) {
     }, {});
 
     if(parseInt(obj.Date.substr(0, 4)) >= START_YEAR) {
-      addToContentMap(obj, obj[group1], obj[group2]);
-      addToContentMap(obj, obj[group2], obj[group1]); //add both ways.
+      addToContentMap(obj, obj[GROUP1], obj[GROUP2]);
+      addToContentMap(obj, obj[GROUP2], obj[GROUP1]); //add both ways.
 
-      var n1 = graph.addNode(obj[group1]);
+      var n1 = graph.addNode(obj[GROUP1]);
 
       if(typeof n1 !== 'undefined') {
-        n1.id = obj[group1];
+        n1.id = obj[GROUP1];
         n1.group = 1;
       }
 
-      var n2 = graph.addNode(obj[group2]);
+      var n2 = graph.addNode(obj[GROUP2]);
 
       if(typeof n2 !== 'undefined') {
-        n2.id = obj[group2];
+        n2.id = obj[GROUP2];
         n2.group = 2;
       }
     }
@@ -60,8 +60,8 @@ function buildGraph(connections) {
     }, {});
 
     if(parseInt(edgeObj.Date.substr(0, 4)) >= START_YEAR) {
-      var fromId = edgeObj[group1];
-      var toId = edgeObj[group2];
+      var fromId = edgeObj[GROUP1];
+      var toId = edgeObj[GROUP2];
       var edge = graph.getEdge(fromId, toId);
 
       if(edge) {
@@ -86,12 +86,11 @@ function buildGraph(connections) {
   });
   */
 
-
 }
 
 
-function addToContentMap(obj, group1Id, group2Id) {
-  var key = group1Id + '_' + group2Id;
+function addToContentMap(obj, GROUP1Id, GROUP2Id) {
+  var key = GROUP1Id + '_' + GROUP2Id;
 
   if(!contentMap.hasOwnProperty(key)) {
     contentMap[key] = [];

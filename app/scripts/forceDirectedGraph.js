@@ -284,7 +284,7 @@ function cluster(alpha) {
 
 
 // Resolve collisions between nodes.
-var padding = 1; // separation between circles
+var padding = 30; // separation between circles
 
 function collide(alpha) {
   var quadtree = d3.geom.quadtree(nodes);
@@ -399,8 +399,6 @@ function arrange() {
 
 
 //Context Menu
-
-var contextMenuList = [];
 var contextMenuOpen = false;
 var selectedNode = null;
 var timer = null;

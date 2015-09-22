@@ -136,10 +136,147 @@ function updateMaxBubbles(value) {
 
 
 
-//TODO: Make the modal generic and configurable (since we have two, so far...)
 
 
+//Open popup with connection info -- from Context Menu in Force Directred Graph
+/* new one (fish)
+function viewConnectionInfo() {
+  hideContextMenu();
+
+  var listId = 'toId';
+  var nodeType = GROUP1.replace(/_/g, ' ');
+
+  var header1 = d3.select('#connectionHeader1').node();
+  var header2 = d3.select('#connectionHeader2').node();
+  var header3 = d3.select('#connectionHeader3').node();
+
+  //Yuck - hardcode...
+  header1.innerHTML = 'Lobbyist Client';
+  header2.innerHTML = 'Official Department';
+  header3.innerHTML = 'Official';
+
+  if(selectedNode.group === 2) {
+    listId = 'fromId';
+    nodeType = GROUP2.replace(/_/g, ' ');
+
+    //Yuck - hardcode...
+    header1.innerHTML = 'Official';
+    header2.innerHTML = 'Lobbyist Firm';
+    header3.innerHTML = 'Lobbyist Client';
+  }
+
+  var label = d3.select('#connectionName').node();
+  label.innerHTML = selectedNode.name + ' <small> ' + nodeType + '</small>';
+
+  if(connectionsTable) {
+    connectionsTable.destroy();
+  }
+
+  var contextMenuMap = {};
+
+  var edges = graph.getAllEdgesOf(selectedNode.name);
+
+  edges.forEach(function(edge) {
+    edge.weightList.forEach(function(connection) {
+      var mapKey = edge[listId] + ':' + connection.Official + ':' + connection.Lobbyist_Client; // + ':' + connection.LobbyingSubjectArea + ':' + connection.MunicipalDecision + ':' + connection.DesiredOutcome;
+
+      if(!contextMenuMap.hasOwnProperty(mapKey)) {
+        var obj = {};
+        obj.name = edge[listId];
+        obj.Date = connection.Date;
+        obj.Official = connection.Official;
+        obj.Lobbyist_Client = connection.Lobbyist_Client;
+        obj.Lobbyist_Firm = connection.Lobbyist_Firm;
+        //obj.LobbyingSubjectArea = connection.LobbyingSubjectArea;
+        //obj.MunicipalDecision = connection.MunicipalDecision;
+        //obj.DesiredOutcome = connection.DesiredOutcome;
+        obj.numContacts = 1;
+
+        contextMenuMap[mapKey] = obj;
+      }
+      else {
+        contextMenuMap[mapKey].numContacts++;
+      }
+    });
+  });
+
+  //Add the rows to the table.
+  $('#connectionsTableBody').empty();
+
+  for(var key in contextMenuMap) {
+    if(contextMenuMap.hasOwnProperty(key)) {
+      addConnectionsRow(contextMenuMap[key]);
+    }
+  }
+
+  $('#openModal')
+    .css('opacity', 1)
+    .css('pointer-events', 'auto');
+
+  var modalHeight = document.getElementById('openModalDiv').clientHeight;
+  var eightyP = parseInt(window.innerHeight * 0.8) - 170;
+
+  if(modalHeight > eightyP) {
+    modalHeight = eightyP;
+  }
+
+  connectionsTable = $('#connectionsTable').DataTable({
+    paging: false,
+    scrollY: modalHeight,
+    //columns: [
+    //    { type: 'de_date', targets: 0 },
+    //    { width: '120px', className: 'dt-right' },
+    //    { width: '120px', className: 'dt-center' },
+    //  ]
+  });
+
+}
+
+function addConnectionsRow(data) {
+  var row = $('<tr />');
+
+  //fish: date
+  //var d1 = new Date(data.Date);
+  //var month = (d1.getMonth() + 1).toString();
+  //var day = d1.getDate().toString();
+  //var d2 = d1.getFullYear() + '-' + (month.length === 1 ? '0' + month : month) + '-' + (day.length === 1 ? '0' + day : day);
+
+  $('#connectionsTableBody').append(row);
+  row.append($('<td>' + data.Date + '</td>'));
+  row.append($('<td>' + data.name + '</td>'));
+
+  if(selectedNode.group === 1) {
+    row.append($('<td>' + data.Official_Department + '</td>'));
+    row.append($('<td>' + data.Official + '</td>'));
+  }
+  else {
+    row.append($('<td>' + data.Lobbyist_Firm + '</td>'));
+    row.append($('<td>' + data.Lobbyist_Client + '</td>'));
+  }
+
+
+  row.append($('<td>' + data.numContacts + '</td>'));
+  row.append($('<td><button class="linkButton" onclick="viewConnectionDetails(\'' + data.name + '\')">View Details</button></td>'));
+}
+
+
+
+function closeConnectionsModal() {
+  $('#openModal')
+    .css('opacity', 0)
+    .css('pointer-events', 'none');
+}
+*/
+
+
+
+
+
+
+/* fish */
 //Open popups with connection info -- from Context Menu in Force Directred Graph
+var contextMenuList = [];
+
 function viewConnectionInfo() {
   hideContextMenu();
 
@@ -294,7 +431,7 @@ function closeDetailsModal() {
     .css('opacity', 0)
     .css('pointer-events', 'none');
 }
-
+/* fish end */
 
 
 
